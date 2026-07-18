@@ -1,0 +1,19 @@
+tests/securityScanner.test.ts
+  s_b0f8c979519f24::t_3a312f9369a0f9 75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "4633b998f6ad09603f66b04b62fc3f003bb4f042",
+  "prompts": {},
+  "sessions": {
+    "s_b0f8c979519f24": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "40071f7c-61f1-40b4-a76e-fee7d3cec7fd",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
