@@ -2,10 +2,14 @@ import { join } from 'node:path';
 import { createEngine, type EngineConfig } from '../core/engine.js';
 import { systemClock } from '../core/clock.js';
 import { NwsAlertsSource } from '../adapters/source/NwsAlertsSource.js';
-import { OpenAiCompatibleClient } from '../adapters/model/OpenAiCompatibleClient.js';
+import {
+  OpenAiCompatibleClient,
+  type ModelClient,
+} from '../adapters/model/OpenAiCompatibleClient.js';
 import { ModelWriter } from '../adapters/writer/ModelWriter.js';
 import { ModelRubricEvaluator } from '../adapters/evaluator/ModelRubricEvaluator.js';
 import { HiddenLayerScanner } from '../adapters/security/HiddenLayerScanner.js';
+import { ScannedModelClient } from '../adapters/security/ScannedModelClient.js';
 import { DEMO_TASK, LIVE_ALERTS_TASK } from '../fixtures/demoTask.js';
 import { DOMAIN_EVIDENCE } from '../fixtures/demoDomainEvidence.js';
 
@@ -58,39 +62,9 @@ async function main(): Promise<void> {
     config.clock = systemClock;
   }
 
-  const modelAdapter = process.env.MODEL_ADAPTER ?? 'heuristic';
-  if (modelAdapter === 'openai') {
-    const baseUrl = process.env.OPENAI_BASE_URL;
-    const writerModel = process.env.WRITER_MODEL;
-    if (!baseUrl || !writerModel) {
-      throw new Error(
-        'MODEL_ADAPTER=openai requires OPENAI_BASE_URL and WRITER_MODEL ' +
-          '(see .env.example; e.g. a vLLM endpoint from docs/references/vllm-quickstart.md).',
-      );
-    }
-    const apiKey = process.env.OPENAI_API_KEY;
-    const clock = config.clock ?? systemClock;
-    config.clock = clock; // live model output is non-deterministic anyway
-    config.writer = new ModelWriter(
-      new OpenAiCompatibleClient({
-        baseUrl,
-        model: writerModel,
-        ...(apiKey ? { apiKey } : {}),
-      }),
-      clock,
-    );
-    // Independent judge: its own client and (ideally) its own model.
-    config.evaluator = new ModelRubricEvaluator(
-      new OpenAiCompatibleClient({
-        baseUrl,
-        model: process.env.EVALUATOR_MODEL ?? writerModel,
-        ...(apiKey ? { apiKey } : {}),
-      }),
-    );
-  }
-
   // Runtime security (HiddenLayer seam): wired automatically when credentials
-  // are present. Ingested content is scanned fail-closed before research.
+  // are present. Ingested content is scanned fail-closed before research, and
+  // when the model adapter is active every prompt/output is scanned too.
   const hlClientId = process.env.HIDDENLAYER_CLIENT_ID;
   const hlClientSecret = process.env.HIDDENLAYER_CLIENT_SECRET;
   if (hlClientId && hlClientSecret) {
@@ -108,6 +82,49 @@ async function main(): Promise<void> {
         : {}),
       requesterId: 'writing-engine-heartbeat',
     });
+  }
+
+  const modelAdapter = process.env.MODEL_ADAPTER ?? 'heuristic';
+  if (modelAdapter === 'openai') {
+    const baseUrl = process.env.OPENAI_BASE_URL;
+    const writerModel = process.env.WRITER_MODEL;
+    if (!baseUrl || !writerModel) {
+      throw new Error(
+        'MODEL_ADAPTER=openai requires OPENAI_BASE_URL and WRITER_MODEL ' +
+          '(see .env.example; e.g. a vLLM endpoint from docs/references/vllm-quickstart.md).',
+      );
+    }
+    const apiKey = process.env.OPENAI_API_KEY;
+    const clock = config.clock ?? systemClock;
+    config.clock = clock; // live model output is non-deterministic anyway
+    // With a scanner active, every model interaction is scanned per request
+    // (prompt before send, output before use) — fail-closed on both sides.
+    const guarded = (client: ModelClient, role: 'writer' | 'evaluator') =>
+      config.scanner
+        ? new ScannedModelClient(client, config.scanner, { role })
+        : client;
+    config.writer = new ModelWriter(
+      guarded(
+        new OpenAiCompatibleClient({
+          baseUrl,
+          model: writerModel,
+          ...(apiKey ? { apiKey } : {}),
+        }),
+        'writer',
+      ),
+      clock,
+    );
+    // Independent judge: its own client and (ideally) its own model.
+    config.evaluator = new ModelRubricEvaluator(
+      guarded(
+        new OpenAiCompatibleClient({
+          baseUrl,
+          model: process.env.EVALUATOR_MODEL ?? writerModel,
+          ...(apiKey ? { apiKey } : {}),
+        }),
+        'evaluator',
+      ),
+    );
   }
 
   const gateDomain =

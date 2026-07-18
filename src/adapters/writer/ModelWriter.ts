@@ -21,13 +21,13 @@ import type {
 import { SCHEMA_VERSIONS } from '../../domain/records.js';
 import { shortId } from '../../core/hash.js';
 import type { Clock } from '../../core/clock.js';
-import type { OpenAiCompatibleClient } from '../model/OpenAiCompatibleClient.js';
+import type { ModelClient } from '../model/OpenAiCompatibleClient.js';
 
 export class ModelWriter implements Writer {
   readonly version: string;
 
   constructor(
-    private readonly client: OpenAiCompatibleClient,
+    private readonly client: ModelClient,
     private readonly clock: Clock,
   ) {
     this.version = `model-writer@1:${client.model}`;

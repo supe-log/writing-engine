@@ -6,7 +6,11 @@ import { createEngine } from '../src/core/engine.js';
 import { DEMO_TASK } from '../src/fixtures/demoTask.js';
 import { HiddenLayerScanner } from '../src/adapters/security/HiddenLayerScanner.js';
 import type { FetchLike } from '../src/adapters/source/NwsAlertsSource.js';
-import type { RuntimeSecurityScanner } from '../src/ports/index.js';
+import {
+  SecurityBlockedError,
+  type RuntimeSecurityScanner,
+  type Writer,
+} from '../src/ports/index.js';
 
 let dir: string;
 beforeEach(() => {
@@ -68,6 +72,34 @@ describe('heartbeat security boundary', () => {
 
     expect(run.cycles).toHaveLength(0);
     expect(run.notes[0]?.detail).toMatch(/fail-closed.*scanner down/);
+  });
+
+  it('a model-boundary block inside the write-cycle skips the tick visibly', async () => {
+    // Simulates ScannedModelClient refusing a flagged prompt/output mid-cycle:
+    // the heartbeat must convert it into a security-block note, persist no
+    // run, and keep beating rather than crash.
+    const blockedWriter: Writer = {
+      version: 'blocked-writer@test',
+      write: () =>
+        Promise.reject(
+          new SecurityBlockedError(
+            'fake-scanner flagged model prompt for writer: prompt-injection(high)',
+            'prompt',
+          ),
+        ),
+    };
+    const { heartbeat, deps } = createEngine({
+      dataDir: dir,
+      scanner: fakeScanner(false),
+      writer: blockedWriter,
+    });
+    const run = await heartbeat.run({ task: DEMO_TASK, ticks: 2 });
+
+    expect(run.cycles).toHaveLength(0);
+    const blocks = run.notes.filter((n) => n.kind === 'security-block');
+    expect(blocks).toHaveLength(2);
+    expect(blocks[0]?.detail).toMatch(/model prompt for writer/);
+    expect(await deps.store.listRuns()).toHaveLength(0);
   });
 });
 

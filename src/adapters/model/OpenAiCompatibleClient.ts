@@ -19,6 +19,18 @@ export interface ChatMessage {
   content: string;
 }
 
+/**
+ * The model-call seam the writer and evaluator adapters depend on. Kept as an
+ * interface so a decorator (e.g. the runtime-security ScannedModelClient) can
+ * wrap the transport without the adapters knowing.
+ */
+export interface ModelClient {
+  /** Model id as the server knows it. */
+  readonly model: string;
+  /** One chat completion; returns the assistant message content. */
+  complete(messages: ChatMessage[]): Promise<string>;
+}
+
 export class ModelProviderError extends Error {
   constructor(
     message: string,
@@ -48,7 +60,7 @@ interface ChatCompletionResponse {
   choices?: Array<{ message?: { content?: string } }>;
 }
 
-export class OpenAiCompatibleClient {
+export class OpenAiCompatibleClient implements ModelClient {
   readonly model: string;
   private readonly url: string;
   private readonly apiKey: string | undefined;

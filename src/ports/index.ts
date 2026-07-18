@@ -131,6 +131,25 @@ export interface RuntimeSecurityScanner {
 }
 
 /**
+ * Thrown when a runtime-security boundary refuses to let an interaction
+ * proceed — either the scanner flagged the content or the scan itself was
+ * unavailable (fail-closed). Lives in ports so the core heartbeat can catch
+ * it without depending on any concrete scanner adapter.
+ */
+export class SecurityBlockedError extends Error {
+  constructor(
+    message: string,
+    /** Which boundary refused: model prompt, model output, or ingestion. */
+    readonly boundary: 'ingested' | 'prompt' | 'output',
+    readonly findings: SecurityScanFinding[] = [],
+    readonly scanner?: string,
+  ) {
+    super(message);
+    this.name = 'SecurityBlockedError';
+  }
+}
+
+/**
  * Decides how far a writing-assessment domain may be pursued after source
  * discovery, per docs/evidence-gates.md. Deterministic policy, not a model
  * call: it consumes the evidence an investigator assembled and emits the
