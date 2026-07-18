@@ -65,17 +65,17 @@ One cycle (`runCycle` in `src/core/pipeline.ts`):
 
 ## Ports and adapters (the seam table)
 
-| Port (`src/ports/index.ts`) | Demo adapter (offline, deterministic)                                           | Production implementation (not shipped)                                                    |
-| --------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `LiveSourceAdapter`         | `FixtureSourceAdapter` — replays a JSON feed whose metrics update between polls | Poll a real feed (Texas open data / NOAA / Apify actor). Stub: `LiveSourceAdapter.todo.ts` |
-| `SnapshotService`           | `ProvenanceSnapshotService` — SHA-256 content hashing                           | Same; optionally persist raw payloads to object storage                                    |
-| `Researcher`                | `HeuristicResearcher` — metric/body extraction + novelty diff                   | Nemotron/vLLM-served model doing claim extraction and implication reasoning                |
-| `Writer`                    | `TemplateWriter` — directives toggle concrete memo changes                      | Nemotron/vLLM-served model; lessons become prompt-context injections                       |
-| `DeterministicValidator`    | `DeterministicValidators` — citations, staleness, injection, structure          | Same, extended with domain-specific checks                                                 |
-| `RubricEvaluator`           | `HeuristicRubricEvaluator` — per-dimension pass-ratio proxy                     | Independent model judge (separate prompt), returns calibrated scores + abstention          |
-| `LessonExtractor`           | `CritiqueLessonExtractor` — maps failed checks to reusable repairs              | Model-assisted lesson synthesis with overfit rejection                                     |
-| `Store`                     | `FileSystemStore` — versioned JSON under `data/`                                | Supabase-backed store implementing the same interface                                      |
-| `EvidenceGateEvaluator`     | `LayeredEvidenceGateEvaluator` — deterministic policy over assembled evidence   | Same policy fed by a model-assisted investigator that assembles `DomainEvidence`           |
+| Port (`src/ports/index.ts`) | Demo adapter (offline, deterministic)                                           | Production implementation (not shipped)                                                                                 |
+| --------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `LiveSourceAdapter`         | `FixtureSourceAdapter` — replays a JSON feed whose metrics update between polls | **Implemented:** `NwsAlertsSource` polls real NOAA NWS active alerts (`SOURCE_ADAPTER=live`); fixture stays the default |
+| `SnapshotService`           | `ProvenanceSnapshotService` — SHA-256 content hashing                           | Same; optionally persist raw payloads to object storage                                                                 |
+| `Researcher`                | `HeuristicResearcher` — metric/body extraction + novelty diff                   | Nemotron/vLLM-served model doing claim extraction and implication reasoning                                             |
+| `Writer`                    | `TemplateWriter` — directives toggle concrete memo changes                      | Nemotron/vLLM-served model; lessons become prompt-context injections                                                    |
+| `DeterministicValidator`    | `DeterministicValidators` — citations, staleness, injection, structure          | Same, extended with domain-specific checks                                                                              |
+| `RubricEvaluator`           | `HeuristicRubricEvaluator` — per-dimension pass-ratio proxy                     | Independent model judge (separate prompt), returns calibrated scores + abstention                                       |
+| `LessonExtractor`           | `CritiqueLessonExtractor` — maps failed checks to reusable repairs              | Model-assisted lesson synthesis with overfit rejection                                                                  |
+| `Store`                     | `FileSystemStore` — versioned JSON under `data/`                                | Supabase-backed store implementing the same interface                                                                   |
+| `EvidenceGateEvaluator`     | `LayeredEvidenceGateEvaluator` — deterministic policy over assembled evidence   | Same policy fed by a model-assisted investigator that assembles `DomainEvidence`                                        |
 
 Wiring happens in exactly one place: `createEngine` in `src/core/engine.ts`.
 
@@ -129,8 +129,9 @@ not change the orchestrator, the store, the benchmark, or the tests.
 These sponsor technologies are **defined seams and TODOs, not implemented
 integrations**:
 
-- **Live feed** — implement `LiveSourceAdapter` against a real public source
-  (see `src/adapters/source/LiveSourceAdapter.todo.ts` and `.env.example`).
+- **Live feed** — DONE: `NwsAlertsSource` polls NOAA NWS active alerts behind
+  the same port (`SOURCE_ADAPTER=live`, see `.env.example`); an Apify actor
+  dataset remains a documented alternative.
 - **Nemotron / vLLM** — implement `Researcher`, `Writer`, and/or
   `RubricEvaluator` against an OpenAI-compatible vLLM endpoint serving Nemotron.
   The evaluator should be a _separate_ model call from the writer. See
@@ -162,6 +163,14 @@ spec. Run `npm run gate` to evaluate the worked STAAR example. See
 [evidence-gates.md](evidence-gates.md) for the full specification, the
 RED/AMBER/YELLOW/BLUE/GREEN outcomes, the decision algorithm, and the worked
 STAAR example; `tests/evidenceGate.test.ts` encodes its acceptance checklist.
+
+The gate is also **enforced at runtime**: `Heartbeat.run` evaluates its
+domain's evidence before the tick loop, persists the `DecisionRecord` to the
+store's `decisions/` audit dir, and refuses to run write-cycles when the earned
+permission does not cover the required tier (default `prototype`). A refused
+run still polls and snapshots — observing is always allowed — and reports why
+it refused via `TickNote`s. The benchmark deliberately bypasses the gate: it is
+the instrument that produces the evidence a domain uses to earn its tier.
 
 See [adr/0001-filesystem-persistence-and-ports.md](adr/0001-filesystem-persistence-and-ports.md)
 for the rationale behind the ports-first, filesystem-first approach.

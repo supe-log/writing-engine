@@ -11,11 +11,12 @@ model.
 - **Built for:** AITX Community x NVIDIA Claw Agent Hackathon (July 17–19, 2026)
 
 > This repository is a **runnable scaffold with deep module seams**, not a fake
-> finished product. The demo runs end-to-end offline on deterministic fixtures.
-> The writer, researcher, and evaluator in the demo are **heuristics**, clearly
-> separated behind interfaces from the production model ports (Nemotron/vLLM,
-> Supabase, a live feed, HiddenLayer). Nothing here claims an integration it does
-> not have.
+> finished product. The demo runs end-to-end offline on deterministic fixtures;
+> a **real live feed** (NOAA NWS alerts) and an **enforced evidence gate** are
+> implemented. The writer, researcher, and evaluator in the demo are
+> **heuristics**, clearly separated behind interfaces from the production model
+> ports (Nemotron/vLLM, Supabase, HiddenLayer). Nothing here claims an
+> integration it does not have.
 
 ---
 
@@ -42,9 +43,11 @@ npm test             # unit + integration tests at the module seams
 Other scripts:
 
 ```bash
-npm run check        # format:check + lint + typecheck + test (CI gate)
-npm run heartbeat    # single tick; memory compounds across invocations
-npm run build        # compile TypeScript to dist/
+npm run check          # format:check + lint + typecheck + test (CI gate)
+npm run heartbeat      # single tick; memory compounds across invocations
+npm run heartbeat:live # poll real NOAA NWS alerts (network; see "Live data")
+npm run gate           # evaluate the evidence gates for the STAAR worked example
+npm run build          # compile TypeScript to dist/
 ```
 
 ## What the demo shows
@@ -70,6 +73,16 @@ Per-dimension:
 It also prints the exact learned rules that caused the improvement (e.g. _"Cite
 the source URL inline for every factual claim"_), whether each was promoted to
 the durable playbook, and the full baseline vs. latest artifacts.
+
+**Runtime evidence gate:** every heartbeat run is gated by the
+[evidence gates](docs/evidence-gates.md). The run evaluates its domain's
+evidence, persists the auditable decision record under `data/*/decisions/`,
+and only produces writing when the domain has earned at least **prototype**
+permission. Observing — polling and snapshotting — is always allowed; writing
+must be earned. The demo domain (`tx-civic-memo`) passes at YELLOW/prototype;
+the live-alerts domain (`nws-alerts-tx`) is AMBER/investigate, so a default
+live run **watches real data and refuses to write**, saying exactly what
+evidence is missing.
 
 **The loop:** heartbeat wakes → poll live source → capture provenance snapshot →
 research (claims, novelty, uncertainty) → write (applying retrieved lessons) →
@@ -111,18 +124,50 @@ table, and the demo-heuristic-vs-production-model distinction.
 ## Tech stack
 
 - **Language/runtime:** TypeScript (strict) on Node.js 20, ESM, npm
-- **Testing:** Vitest (27 tests at the module seams)
+- **Testing:** Vitest suites at every module seam (`npm test`)
 - **Tooling:** ESLint + Prettier, GitHub Actions CI
 - **Persistence:** filesystem JSON under a gitignored `data/` directory, with
   versioned domain records (Supabase is a defined-but-unimplemented port)
 - **Zero required services:** the demo and benchmark run with no API keys
 
-Sponsor technologies (Nemotron, vLLM, Supabase, HiddenLayer, NemoClaw/OpenShell)
-are present as **documented extension seams and TODOs**, not claimed
-integrations. See [docs/architecture.md](docs/architecture.md#extension-seams).
-A hackathon technical reference for the vLLM serving path (derived from
-presentation slides; point-in-time) is at
-[docs/references/vllm-quickstart.md](docs/references/vllm-quickstart.md).
+## Live data (NOAA NWS alerts)
+
+`npm run heartbeat:live` polls the real National Weather Service active-alerts
+API (`https://api.weather.gov/alerts/active?area=TX` — free, keyless,
+US-government public domain; a User-Agent header is mandatory and sent by
+default). The feed state maps onto one event stream whose severity-count
+metrics update between polls; unchanged state polls as "nothing new" and the
+heartbeat idles honestly. Network failures surface as visible errors — never
+fabricated events.
+
+```bash
+npm run heartbeat:live                              # observe live data; gate REFUSES writing (AMBER domain)
+GATE_DOMAIN=tx-civic-memo npm run heartbeat:live    # operator override: write memos from live alerts
+```
+
+Env vars (all optional): `NWS_AREA` (default `TX`), `LIVE_FEED_URL` (full
+override), `LIVE_USER_AGENT`, `HEARTBEAT_TICKS`, `HEARTBEAT_INTERVAL_MS`
+(default 30000 live), `GATE_DOMAIN`. The demo and benchmark never touch the
+network.
+
+## Deferred integrations (TODO)
+
+Sponsor technologies beyond the live feed are **documented extension seams and
+TODOs**, not claimed integrations
+(see [docs/architecture.md](docs/architecture.md#extension-seams)):
+
+- **Nemotron / vLLM** — one OpenAI-compatible adapter backing the
+  `Researcher`/`Writer`/`RubricEvaluator` ports; works against a self-hosted
+  vLLM endpoint on a GPU box (Brev) or a hosted OpenAI-compatible endpoint —
+  a base-URL swap, nothing else. The evaluator must be a separate model call
+  from the writer. Serving reference:
+  [docs/references/vllm-quickstart.md](docs/references/vllm-quickstart.md).
+- **HiddenLayer** — runtime scans at the documented boundaries: ingested feed
+  content (after `poll()`, before `research()`), and prompts/outputs (around
+  `write()`/`evaluate()`).
+- **Supabase** — a `Store` implementation preserving `schemaVersion`.
+- **NemoClaw / OpenShell** — run the heartbeat inside a sandbox whose YAML
+  policy enforces the human publishing gate at the boundary.
 
 ## Reproducing the demo
 
@@ -143,21 +188,22 @@ documented in [docs/dataset-provenance.md](docs/dataset-provenance.md).
 ## Known limitations & next steps
 
 See [docs/known-limitations.md](docs/known-limitations.md). In short: the demo
-writer/researcher/evaluator are heuristics; the "live" feed is a fixture replay;
-and the production model/persistence/security ports are defined but not
-implemented. Publishing is intentionally **human-gated** — nothing auto-publishes.
+writer/researcher/evaluator are heuristics; the default demo feed is a fixture
+replay (a real NWS live feed is available via `heartbeat:live`); and the
+production model/persistence/security ports are defined but not implemented.
+Publishing is intentionally **human-gated** — nothing auto-publishes.
 
 ## Repository layout
 
 ```
 src/
-  domain/      versioned record types + canonicalization
+  domain/      versioned record types + canonicalization + evidence-gate types
   ports/       interfaces (the replaceable seams)
-  adapters/    offline implementations: source, researcher, writer, validators, evaluator, store
+  adapters/    source (fixture + live NWS), researcher, writer, validators, evaluator, store, evidence gate
   core/        provenance, lesson extractor, lesson memory, pipeline, heartbeat, engine wiring
   benchmark/   frozen benchmark fixture + runner
-  fixtures/    deterministic demo feed + writing task
-  cli/         demo, benchmark, heartbeat entry points
+  fixtures/    deterministic demo feed + writing tasks + domain evidence
+  cli/         demo, benchmark, heartbeat, gate entry points
 tests/         Vitest suites at each seam
 docs/          architecture, provenance, limitations, ADRs, submission checklist,
                and the preserved organizer capture + planning docs (docs/organizer/)

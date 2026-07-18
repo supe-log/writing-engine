@@ -1,8 +1,10 @@
 # Dataset provenance
 
 The demo and benchmark run entirely on **synthetic fixtures**. No real dataset is
-downloaded, scraped, or shipped in this repository. This document records what the
-fixtures model, why they are synthetic, and the path to a real live feed.
+shipped in this repository. A **real live feed** (NOAA NWS active alerts) is
+available at runtime via `npm run heartbeat:live`; its provenance is recorded
+below. This document records what the fixtures model, why they are synthetic,
+and the live-feed terms.
 
 ## What ships in the repo
 
@@ -41,19 +43,27 @@ The synthetic fixtures are original to this repository and are covered by the
 repository [LICENSE](../LICENSE) (MIT). Because no third-party data is included,
 there are no external attribution or redistribution obligations.
 
-## Path to a real live feed
+## The real live feed: NOAA NWS active alerts
 
-The source is a replaceable port (`LiveSourceAdapter`). To point the engine at a
-real feed:
+`NwsAlertsSource` (`src/adapters/source/NwsAlertsSource.ts`), selected with
+`SOURCE_ADAPTER=live`:
 
-1. Implement `src/adapters/source/LiveSourceAdapter.todo.ts` against a real public
-   source — e.g. a Texas open-data portal endpoint, NOAA, or an Apify actor.
-2. Wire it in `createEngine` (`src/core/engine.ts`) — the one place adapters are
-   selected.
-3. Configure endpoints/keys via `.env` (see [.env.example](../.env.example)); the
-   demo needs none.
+- **Publisher:** US National Weather Service (NOAA), api.weather.gov
+- **Endpoint:** `https://api.weather.gov/alerts/active?area=TX` (area
+  configurable via `NWS_AREA`; full override via `LIVE_FEED_URL`)
+- **License:** US-government work, public domain; no key required
+- **Retrieval terms:** the API requires an identifying `User-Agent` header
+  (sent by default; override with `LIVE_USER_AGENT`). Rate limits are
+  unpublished — the default 30s poll interval is conservative. Occasional 5xx
+  responses surface as visible source errors, never fabricated events.
+- **Provenance:** each poll is captured as a content-hashed snapshot with the
+  feed URL as the anchor and the real retrieval time (`systemClock`).
 
-When wiring a real feed, honor the source's terms of use and licensing, and record
-the actual provenance (publisher, license, retrieval terms) here — replacing the
-synthetic description above. The engine's design principle is unchanged: **live
-source is truth; memory is context.**
+The engine's design principle is unchanged: **live source is truth; memory is
+context.** Note the evidence gate treats live-alert memo-writing as its own
+domain (`nws-alerts-tx`, currently AMBER): the data is real, but the writing
+domain has not yet earned a benchmark — so default live runs observe and
+refuse to write.
+
+An Apify actor dataset or a Texas open-data portal endpoint remain documented
+alternatives behind the same `LiveSourceAdapter` port.
