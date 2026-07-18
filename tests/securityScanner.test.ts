@@ -104,7 +104,12 @@ describe('heartbeat security boundary', () => {
 });
 
 describe('HiddenLayerScanner', () => {
-  function stubHl(detections: Array<Record<string, string>>): FetchLike & {
+  // Stub mirrors the LIVE-VERIFIED v2 response (2026-07-18): outcome.action
+  // NONE|DETECT|REDACT|BLOCK plus rule_name/risk_level detections.
+  function stubHl(
+    action: string,
+    detections: Array<Record<string, string>> = [],
+  ): FetchLike & {
     calls: Array<{ url: string; init: Record<string, unknown> }>;
   } {
     const calls: Array<{ url: string; init: Record<string, unknown> }> = [];
@@ -118,7 +123,7 @@ describe('HiddenLayerScanner', () => {
           Promise.resolve(
             isAuth
               ? { access_token: 'tok-123', expires_in: 3600 }
-              : { detections },
+              : { outcome: { action, detections } },
           ),
       });
     };
@@ -135,8 +140,18 @@ describe('HiddenLayerScanner', () => {
     });
   }
 
-  it('authenticates via client credentials, then posts the interaction', async () => {
-    const fetchFn = stubHl([]);
+  interface V2Body {
+    interaction: {
+      messages: Array<{
+        role: string;
+        content: Array<{ type: string; text: string }>;
+      }>;
+    };
+    metadata: Record<string, string>;
+  }
+
+  it('authenticates via client credentials, then posts the canonical interaction', async () => {
+    const fetchFn = stubHl('NONE');
     const result = await scanner(fetchFn).scan('ingested', 'hello', {
       feed: 'f',
     });
@@ -146,30 +161,50 @@ describe('HiddenLayerScanner', () => {
       'auth.hiddenlayer.ai/oauth2/token?grant_type=client_credentials',
     );
     expect(fetchFn.calls[1]?.url).toBe(
-      'https://api.hiddenlayer.ai/detection/v1/interactions',
+      'https://api.hiddenlayer.ai/detection/v2/interaction-evaluations',
     );
     const headers = fetchFn.calls[1]?.init['headers'] as Record<string, string>;
     expect(headers['Authorization']).toBe('Bearer tok-123');
     expect(headers['HL-Project-Id']).toBe('proj-1');
-    const body = JSON.parse(fetchFn.calls[1]?.init['body'] as string) as {
-      input?: string;
-      metadata: { boundary: string };
-    };
-    expect(body.input).toBe('hello');
-    expect(body.metadata.boundary).toBe('ingested');
+    const body = JSON.parse(fetchFn.calls[1]?.init['body'] as string) as V2Body;
+    expect(body.interaction.messages[0]?.role).toBe('user');
+    expect(body.interaction.messages[0]?.content[0]).toEqual({
+      type: 'text',
+      text: 'hello',
+    });
+    // Only documented metadata fields go on the wire.
+    expect(Object.keys(body.metadata).sort()).toEqual([
+      'model',
+      'provider',
+      'requester_id',
+    ]);
   });
 
-  it('maps detections to findings and flags', async () => {
-    const fetchFn = stubHl([
-      { category: 'prompt_injection', severity: 'high', description: 'bad' },
+  it('sends model output as an assistant message', async () => {
+    const fetchFn = stubHl('NONE');
+    await scanner(fetchFn).scan('output', 'the memo', {});
+    const body = JSON.parse(fetchFn.calls[1]?.init['body'] as string) as V2Body;
+    expect(body.interaction.messages[0]?.role).toBe('assistant');
+  });
+
+  it('maps outcome detections to findings and flags on DETECT', async () => {
+    const fetchFn = stubHl('DETECT', [
+      { rule_name: '[System] Prompt Injection', risk_level: 'HIGH' },
     ]);
     const result = await scanner(fetchFn).scan('ingested', 'x', {});
     expect(result.flagged).toBe(true);
-    expect(result.findings[0]?.category).toBe('prompt_injection');
+    expect(result.findings[0]?.category).toBe('[System] Prompt Injection');
+    expect(result.findings[0]?.severity).toBe('HIGH');
+  });
+
+  it('flags on BLOCK even without detection details', async () => {
+    const fetchFn = stubHl('BLOCK');
+    const result = await scanner(fetchFn).scan('prompt', 'x', {});
+    expect(result.flagged).toBe(true);
   });
 
   it('caches the token across scans', async () => {
-    const fetchFn = stubHl([]);
+    const fetchFn = stubHl('NONE');
     const s = scanner(fetchFn);
     await s.scan('ingested', 'a', {});
     await s.scan('output', 'b', {});

@@ -1,18 +1,18 @@
 /**
  * HiddenLayer AIDR (AI Detection & Response) runtime-security scanner.
  *
- * Flow, per HiddenLayer's public integration docs:
+ * Flow, LIVE-VERIFIED against the real API on 2026-07-18 with event
+ * credentials:
  *  1. OAuth2 client-credentials token from the auth service
  *     (default https://auth.hiddenlayer.ai/oauth2/token), cached until expiry.
- *  2. POST the interaction to the SaaS analysis endpoint
- *     (default https://api.hiddenlayer.ai/detection/v1/interactions) with an
- *     optional HL-Project-Id header; detections in the response become
- *     findings.
- *
- * The request payload mapping follows the publicly documented proxy
- * integrations (endpoint + auth verified; exact detection field names should
- * be confirmed against the official SDK on the first authenticated call —
- * `parseDetections` is the single place to adjust).
+ *  2. POST the interaction to the v2 evaluation endpoint
+ *     (default https://api.hiddenlayer.ai/detection/v2/interaction-evaluations)
+ *     in canonical form: `{ interaction: { messages: [...] }, metadata }`,
+ *     with an optional HL-Project-Id header.
+ *  3. The response's `outcome.action` (NONE | DETECT | REDACT | BLOCK) and
+ *     `outcome.detections` ({ rule_name, risk_level }) become the scan result.
+ *     Verified: a prompt-injection essay returns DETECT with
+ *     `[System] Prompt Injection` at HIGH; clean content returns NONE.
  *
  * Scan failures THROW. The heartbeat treats a thrown scan as fail-closed for
  * ingested content: no trustworthy scan, no write.
@@ -46,6 +46,8 @@ export interface HiddenLayerScannerOptions {
   projectId?: string;
   /** Auditing metadata sent with each interaction. */
   requesterId?: string;
+  /** Provider label sent in evaluation metadata. Default "openai". */
+  provider?: string;
   fetchFn?: FetchLike;
   /** Clock in ms for token-expiry checks; injectable for tests. */
   nowMs?: () => number;
@@ -56,19 +58,19 @@ interface TokenResponse {
   expires_in?: number;
 }
 
-/** The response slice this adapter reads; adjust here if the SDK differs. */
-interface InteractionsResponse {
-  detections?: Array<{
-    category?: string;
-    severity?: string;
-    detection_type?: string;
-    description?: string;
-  }>;
-  evaluation?: { flagged?: boolean };
+/** The response slice this adapter reads (v2 interaction-evaluations). */
+interface EvaluationResponse {
+  outcome?: {
+    action?: 'NONE' | 'DETECT' | 'REDACT' | 'BLOCK';
+    detections?: Array<{
+      rule_name?: string;
+      risk_level?: string;
+    }>;
+  };
 }
 
 export class HiddenLayerScanner implements RuntimeSecurityScanner {
-  readonly name = 'hiddenlayer-aidr@detection-v1';
+  readonly name = 'hiddenlayer-aidr@interaction-evaluations-v2';
   private readonly apiUrl: string;
   private readonly authUrl: string;
   private readonly fetchFn: FetchLike;
@@ -95,7 +97,7 @@ export class HiddenLayerScanner implements RuntimeSecurityScanner {
   ): Promise<SecurityScanResult> {
     const token = await this.getToken();
     const response = await this.request(
-      `${this.apiUrl}/detection/v1/interactions`,
+      `${this.apiUrl}/detection/v2/interaction-evaluations`,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -105,22 +107,34 @@ export class HiddenLayerScanner implements RuntimeSecurityScanner {
             : {}),
         },
         body: JSON.stringify({
+          interaction: {
+            messages: [
+              {
+                // Model output is the assistant speaking; ingested content and
+                // prompts are untrusted input entering the context window.
+                role: kind === 'output' ? 'assistant' : 'user',
+                content: [{ type: 'text', text: content }],
+              },
+            ],
+          },
+          // Only the documented metadata fields go on the wire; the scan-site
+          // metadata (feed, url, role) stays in local findings/notes.
           metadata: {
             model: metadata['model'] ?? 'writing-engine',
+            provider: this.options.provider ?? 'openai',
             requester_id: this.options.requesterId ?? 'writing-engine',
-            ...metadata,
-            boundary: kind,
           },
-          // Ingested content and prompts are analyzed as input; artifacts as output.
-          ...(kind === 'output' ? { output: content } : { input: content }),
         }),
       },
     );
 
-    const payload = (await response.json()) as InteractionsResponse;
+    const payload = (await response.json()) as EvaluationResponse;
     const findings = parseDetections(payload);
+    const action = payload.outcome?.action ?? 'NONE';
     return {
-      flagged: payload.evaluation?.flagged ?? findings.length > 0,
+      // DETECT, REDACT, and BLOCK all mean detections fired; this agent is
+      // fail-closed at every boundary, so any of them flags the content.
+      flagged: action !== 'NONE' || findings.length > 0,
       findings,
       scanner: this.name,
     };
@@ -179,10 +193,10 @@ export class HiddenLayerScanner implements RuntimeSecurityScanner {
   }
 }
 
-function parseDetections(payload: InteractionsResponse): SecurityScanFinding[] {
-  return (payload.detections ?? []).map((d) => ({
-    category: d.category ?? d.detection_type ?? 'unknown',
-    severity: d.severity ?? 'unknown',
-    detail: d.description ?? 'detection triggered',
+function parseDetections(payload: EvaluationResponse): SecurityScanFinding[] {
+  return (payload.outcome?.detections ?? []).map((d) => ({
+    category: d.rule_name ?? 'unknown',
+    severity: d.risk_level ?? 'unknown',
+    detail: `${d.rule_name ?? 'detection'} (policy ${payload.outcome?.action ?? 'DETECT'})`,
   }));
 }
