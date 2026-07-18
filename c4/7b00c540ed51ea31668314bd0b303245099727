@@ -1,0 +1,27 @@
+deploy/nemoclaw/README.md
+  s_852ea5c5b4c4ca::t_45d88177c4e377 25
+deploy/nemoclaw/presets/hiddenlayer.yaml
+  s_852ea5c5b4c4ca::t_45d88177c4e377 27
+  s_852ea5c5b4c4ca::t_2741ad6e48420b 28
+docs/known-limitations.md
+  s_852ea5c5b4c4ca::t_f70552e4a87ef0 28
+  s_852ea5c5b4c4ca::t_1b7a6c23aad14d 21-27,29-31
+docs/bounties/nemoclaw-openshell.md
+  s_852ea5c5b4c4ca::t_45d88177c4e377 36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "c47b00c540ed51ea31668314bd0b303245099727",
+  "prompts": {},
+  "sessions": {
+    "s_852ea5c5b4c4ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8172ac63-781d-4a46-9302-9721c9739179",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
