@@ -339,6 +339,9 @@ That is all. Investigation's job is to produce the feasibility report.
   trait.
 - **Conventions diagnostic review** whenever the product emits detailed
   conventions feedback (so we don't tell a child a correct sentence is wrong).
+- **Feedback isolated from scoring** whenever the product shows students
+  generated feedback: feedback is produced in a separate stage _after_ trait
+  scores are final, so pressure to sound encouraging cannot inflate the score.
 
 ### To justify **bounded autonomous operation** (→ GREEN)
 

@@ -2,8 +2,11 @@
  * The worked example from docs/evidence-gates.md §7: STAAR grades 3–5 Extended
  * Constructed Response, evaluated against the team's actual current evidence —
  * 117 officially scored TEA responses (2023–2025), official annotations, a
- * source manifest with page-level provenance, and the V2/V3 benchmark results
- * (summed QWK ≈ 0.41 → 0.52 with severe score compression).
+ * source manifest with page-level provenance, and the measured V3.1
+ * three-repeat stability benchmark (2026-07-17): total QWK 0.532, consensus
+ * exact vs gold 28.2%, per-trait repeat agreement dev 96.6% / conventions
+ * 98.3%, cascade accuracy 33.3% on gold-zero observations. The repeats are
+ * stable but wrong the same way every time — calibration, not stochasticity.
  *
  * Expected outcome: YELLOW (prototype ceiling). Prototyping is the right next
  * step; a pilot is reachable but not yet earned (sparse per-cell coverage,
@@ -74,12 +77,14 @@ export const staarEcrEvidence: DomainEvidence = {
     untouchedFamilyCount: 1,
     metricsPreregistered: true,
     baselinesDefined: true,
-    // V3.1 ships repeat-aware runs and deterministic consensus reporting,
-    // but the stability benchmark has not been executed yet.
-    exactTraitScoreStabilityRate: null,
+    // Measured in the V3.1 three-repeat run (117 predictions x 3): pairwise
+    // exact trait agreement dev 96.6%, conventions 98.3%; 92.3% of essays
+    // fully stable across all repeats. Taking the weaker trait as the rate.
+    exactTraitScoreStabilityRate: 0.966,
     repeatDisagreementPolicy: 'consensus',
     perCellSamplesSufficient: false,
-    // The V2/V3 scorer essentially never predicts the top scores.
+    // Measured in V3.1: one Conventions=2 prediction in 117 calls;
+    // Development=3 only for a single top essay. Effectively zero recall.
     scorePointsWithZeroRecall: ['devOrg=3', 'conventions=2'],
     blindExpertReviewDone: false,
   },
@@ -104,6 +109,10 @@ export const staarEcrEvidence: DomainEvidence = {
     sourceFidelityReviewDone: false,
     emitsConventionsFeedback: true,
     conventionsDiagnosticReviewDone: false,
+    emitsStudentFeedback: true,
+    // The architecture generates feedback in the orchestrator after trait
+    // scores are final; scorer agents never see the feedback stage.
+    feedbackIsolatedFromScoring: true,
   },
   autonomy: {
     nonInferiorToHuman: false,
@@ -120,8 +129,9 @@ export const staarEcrEvidence: DomainEvidence = {
     routingPerformanceMeasured: false,
     autoScoreCoverageReported: false,
     recalibrationTriggersDefined: false,
-    // Benchmarked cascade accuracy is far below 100%: the cascade is not yet
-    // enforced as deterministic orchestration.
+    // Measured in V3.1: cascade accuracy 33.3% across 18 repeated gold-zero
+    // observations — the cascade is not yet enforced as deterministic
+    // orchestration.
     deterministicRulesVerifiedCorrect: false,
   },
   deterministicRulesImplementable: true,

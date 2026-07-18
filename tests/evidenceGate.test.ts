@@ -320,6 +320,26 @@ describe('BLUE: the pilot tier (spec §5)', () => {
     expect(record.status).toBe('YELLOW');
   });
 
+  it('student feedback that is not isolated from scoring blocks the pilot', () => {
+    const blocked = gate(
+      evidence((e) => {
+        pilotReady(e);
+        e.pilotReviews.feedbackIsolatedFromScoring = false;
+      }),
+    );
+    expect(blocked.status).toBe('YELLOW');
+    expect(blocked.softStops.join(' ')).toMatch(/isolated from scoring/);
+
+    const scoreOnly = gate(
+      evidence((e) => {
+        pilotReady(e);
+        e.pilotReviews.emitsStudentFeedback = false;
+        e.pilotReviews.feedbackIsolatedFromScoring = false;
+      }),
+    );
+    expect(scoreOnly.status).toBe('BLUE');
+  });
+
   it('source-fidelity review is required only when source use matters', () => {
     const blocked = gate(
       evidence((e) => {

@@ -207,6 +207,13 @@ export interface PilotReviewEvidence {
   emitsConventionsFeedback: boolean;
   /** Manually reviewed conventions error set exists. */
   conventionsDiagnosticReviewDone: boolean;
+  /** The product shows students generated feedback, not just scores. */
+  emitsStudentFeedback: boolean;
+  /**
+   * Feedback is generated in a separate stage AFTER scoring is final, so
+   * pressure to sound encouraging cannot inflate the score.
+   */
+  feedbackIsolatedFromScoring: boolean;
 }
 
 /** Evidence required only for bounded autonomous operation (spec §5). */

@@ -423,6 +423,14 @@ function meetsPilotMinimums(e: DomainEvidence, softStops: string[]): boolean {
       'conventions diagnostic review missing while conventions feedback is emitted',
     );
   }
+  if (
+    e.pilotReviews.emitsStudentFeedback &&
+    !e.pilotReviews.feedbackIsolatedFromScoring
+  ) {
+    gaps.push(
+      'student feedback is not isolated from scoring — encouragement pressure can inflate scores',
+    );
+  }
   softStops.push(...gaps.map((g) => `pilot minimums: ${g}`));
   return gaps.length === 0;
 }
