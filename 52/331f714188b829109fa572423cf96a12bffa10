@@ -1,0 +1,49 @@
+examples/essay-inbox/2026-07-18-recess-a.txt
+  s_852ea5c5b4c4ca::t_90f4c02688309e 1-25
+src/fixtures/demoDomainEvidence.ts
+  s_852ea5c5b4c4ca::t_781b54b1f29d50 15
+  s_852ea5c5b4c4ca::t_cdcc06d49084c2 352
+package.json
+  s_852ea5c5b4c4ca::t_2511eb7bc71a14 16
+examples/essay-inbox/2026-07-18-recess-b-injection.txt
+  s_852ea5c5b4c4ca::t_0ef9de9b1c6fac 1-12
+tests/essaySubmissionSource.test.ts
+  s_852ea5c5b4c4ca::t_1ec310b948a052 1-73
+src/adapters/source/EssaySubmissionSource.ts
+  s_852ea5c5b4c4ca::t_a491c74ef29a80 42-44,46,52,60
+  s_852ea5c5b4c4ca::t_564d524110b4e2 82
+  s_852ea5c5b4c4ca::t_7ba34f5a6cbe11 1-28,31-41,45,47-51,53-59,61-81,83-103
+  s_852ea5c5b4c4ca::t_93646be013e6fe 29-30
+examples/essay-inbox/README.md
+  s_852ea5c5b4c4ca::t_8cb9486d6fa4e6 1-29
+.env.example
+  s_852ea5c5b4c4ca::t_96bfaab5cca9f2 13-14,17-18
+  s_852ea5c5b4c4ca::t_66689fd302a6fa 19
+src/cli/heartbeat.ts
+  s_852ea5c5b4c4ca::t_eb873d704d8450 5
+  s_852ea5c5b4c4ca::t_20a7a622c48040 28-31,33
+  s_852ea5c5b4c4ca::t_ba14489b3532f4 14-18
+  s_852ea5c5b4c4ca::t_83a1051c65b023 51-53,57,73-80
+  s_852ea5c5b4c4ca::t_e5b06cbb2eec04 165-168,170-174,177
+  s_852ea5c5b4c4ca::t_f90438ad6694a5 150-151
+  s_852ea5c5b4c4ca::t_564d524110b4e2 160-164
+  s_852ea5c5b4c4ca::t_e33cfb4da8db85 81
+src/fixtures/demoTask.ts
+  s_852ea5c5b4c4ca::t_4c97a060780367 22-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "52331f714188b829109fa572423cf96a12bffa10",
+  "prompts": {},
+  "sessions": {
+    "s_852ea5c5b4c4ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8172ac63-781d-4a46-9302-9721c9739179",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
