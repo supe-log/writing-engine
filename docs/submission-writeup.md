@@ -1,7 +1,7 @@
 # Submission write-up (150–300 words)
 
 > Draft for the hackathon submission form (due Sunday July 19, 11:00 AM CST).
-> Word count of the body below: ~230.
+> Word count of the body below: ~260.
 
 ---
 
