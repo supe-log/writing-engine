@@ -112,6 +112,13 @@ export interface SecurityScanResult {
   flagged: boolean;
   findings: SecurityScanFinding[];
   scanner: string;
+  /**
+   * Present when the scanner's policy REDACTED the content instead of
+   * blocking it: the transformed content the caller should forward in place
+   * of the original. `flagged` is false in that case — the policy explicitly
+   * chose proceed-with-redaction over refusal.
+   */
+  effectiveContent?: string;
 }
 
 /**

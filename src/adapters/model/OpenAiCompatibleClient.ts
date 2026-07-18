@@ -57,7 +57,10 @@ export interface OpenAiCompatibleClientOptions {
 
 /** The slice of a chat-completions response this client reads. */
 interface ChatCompletionResponse {
-  choices?: Array<{ message?: { content?: string } }>;
+  choices?: Array<{
+    message?: { content?: string };
+    finish_reason?: string;
+  }>;
 }
 
 export class OpenAiCompatibleClient implements ModelClient {
@@ -116,9 +119,15 @@ export class OpenAiCompatibleClient implements ModelClient {
         `model response was not valid JSON: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
-    const content = payload.choices?.[0]?.message?.content;
+    const choice = payload.choices?.[0];
+    const content = choice?.message?.content;
     if (typeof content !== 'string' || content.length === 0) {
-      throw new ModelProviderError('model response carried no content');
+      // Reasoning models can exhaust max_tokens before emitting any content
+      // (finish_reason "length"); surface that so the fix (raise maxTokens /
+      // MODEL_MAX_TOKENS) is obvious.
+      throw new ModelProviderError(
+        `model response carried no content (finish_reason: ${choice?.finish_reason ?? 'unknown'})`,
+      );
     }
     return content;
   }

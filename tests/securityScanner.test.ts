@@ -105,10 +105,12 @@ describe('heartbeat security boundary', () => {
 
 describe('HiddenLayerScanner', () => {
   // Stub mirrors the LIVE-VERIFIED v2 response (2026-07-18): outcome.action
-  // NONE|DETECT|REDACT|BLOCK plus rule_name/risk_level detections.
+  // NONE|DETECT|REDACT|BLOCK plus rule_name/risk_level detections, and on
+  // REDACT an effective_interaction carrying the transformed payload.
   function stubHl(
     action: string,
     detections: Array<Record<string, string>> = [],
+    effectiveText?: string,
   ): FetchLike & {
     calls: Array<{ url: string; init: Record<string, unknown> }>;
   } {
@@ -123,7 +125,25 @@ describe('HiddenLayerScanner', () => {
           Promise.resolve(
             isAuth
               ? { access_token: 'tok-123', expires_in: 3600 }
-              : { outcome: { action, detections } },
+              : {
+                  outcome: {
+                    action,
+                    detections,
+                    ...(effectiveText !== undefined
+                      ? {
+                          effective_interaction: {
+                            messages: [
+                              {
+                                content: [
+                                  { type: 'text', text: effectiveText },
+                                ],
+                              },
+                            ],
+                          },
+                        }
+                      : {}),
+                  },
+                },
           ),
       });
     };
@@ -185,6 +205,26 @@ describe('HiddenLayerScanner', () => {
     await scanner(fetchFn).scan('output', 'the memo', {});
     const body = JSON.parse(fetchFn.calls[1]?.init['body'] as string) as V2Body;
     expect(body.interaction.messages[0]?.role).toBe('assistant');
+  });
+
+  it('honors metadata.messageRole for the canonical role', async () => {
+    const fetchFn = stubHl('NONE');
+    await scanner(fetchFn).scan('prompt', 'be fair', {
+      messageRole: 'system',
+    });
+    const body = JSON.parse(fetchFn.calls[1]?.init['body'] as string) as V2Body;
+    expect(body.interaction.messages[0]?.role).toBe('system');
+  });
+
+  it('a REDACT verdict is not flagged and carries the effective content', async () => {
+    const fetchFn = stubHl('REDACT', [], 'URL: file:[REDACTED]/clean.txt');
+    const result = await scanner(fetchFn).scan(
+      'prompt',
+      'URL: file:///var/folders/xy/secretlooking/clean.txt',
+      {},
+    );
+    expect(result.flagged).toBe(false);
+    expect(result.effectiveContent).toBe('URL: file:[REDACTED]/clean.txt');
   });
 
   it('maps outcome detections to findings and flags on DETECT', async () => {

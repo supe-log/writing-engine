@@ -3,6 +3,7 @@ import { ScannedModelClient } from '../src/adapters/security/ScannedModelClient.
 import {
   SecurityBlockedError,
   type RuntimeSecurityScanner,
+  type SecurityScanResult,
 } from '../src/ports/index.js';
 import type {
   ChatMessage,
@@ -15,22 +16,30 @@ interface ScanCall {
   metadata: Record<string, string>;
 }
 
-function recordingScanner(flagKinds: string[] = []): RuntimeSecurityScanner & {
-  calls: ScanCall[];
-} {
+type Verdict = Partial<SecurityScanResult>;
+
+/** Scanner stub: per-content verdict overrides, records every call. */
+function recordingScanner(
+  verdicts: Record<string, Verdict> = {},
+): RuntimeSecurityScanner & { calls: ScanCall[] } {
   const calls: ScanCall[] = [];
   return {
     name: 'fake-scanner',
     calls,
     scan: (kind, content, metadata) => {
       calls.push({ kind, content, metadata });
-      const flagged = flagKinds.includes(kind);
+      const verdict = verdicts[content] ?? {};
       return Promise.resolve({
-        flagged,
-        findings: flagged
-          ? [{ category: 'prompt-injection', severity: 'high', detail: 'x' }]
-          : [],
+        flagged: verdict.flagged ?? false,
+        findings:
+          verdict.findings ??
+          (verdict.flagged
+            ? [{ category: 'prompt-injection', severity: 'high', detail: 'x' }]
+            : []),
         scanner: 'fake-scanner',
+        ...(verdict.effectiveContent !== undefined
+          ? { effectiveContent: verdict.effectiveContent }
+          : {}),
       });
     },
   };
@@ -54,7 +63,7 @@ const MESSAGES: ChatMessage[] = [
 ];
 
 describe('ScannedModelClient', () => {
-  it('scans prompt then output around a clean interaction', async () => {
+  it('scans each prompt message with its role, then the output', async () => {
     const scanner = recordingScanner();
     const inner = fakeModel('the memo');
     const client = new ScannedModelClient(inner, scanner, { role: 'writer' });
@@ -62,20 +71,26 @@ describe('ScannedModelClient', () => {
     const result = await client.complete(MESSAGES);
 
     expect(result).toBe('the memo');
-    expect(scanner.calls.map((c) => c.kind)).toEqual(['prompt', 'output']);
-    // The prompt scan sees the full role-tagged transcript...
-    expect(scanner.calls[0]?.content).toContain('[system]\ngrade fairly');
-    expect(scanner.calls[0]?.content).toContain('[user]\nessay text');
-    // ...the output scan sees the completion, and both carry role metadata.
-    expect(scanner.calls[1]?.content).toBe('the memo');
+    expect(scanner.calls.map((c) => [c.kind, c.content])).toEqual([
+      ['prompt', 'grade fairly'],
+      ['prompt', 'essay text'],
+      ['output', 'the memo'],
+    ]);
     expect(scanner.calls[0]?.metadata).toEqual({
       model: 'fake-model',
       role: 'writer',
+      messageRole: 'system',
     });
+    expect(scanner.calls[1]?.metadata['messageRole']).toBe('user');
+    expect(scanner.calls[2]?.metadata['messageRole']).toBe('assistant');
+    // Nothing redacted: the model saw the original messages.
+    expect(inner.calls[0]).toEqual(MESSAGES);
   });
 
-  it('a flagged prompt never reaches the model', async () => {
-    const scanner = recordingScanner(['prompt']);
+  it('a flagged prompt message never reaches the model', async () => {
+    const scanner = recordingScanner({
+      'essay text': { flagged: true },
+    });
     const inner = fakeModel('never');
     const client = new ScannedModelClient(inner, scanner, { role: 'writer' });
 
@@ -83,13 +98,45 @@ describe('ScannedModelClient', () => {
       SecurityBlockedError,
     );
     await expect(client.complete(MESSAGES)).rejects.toThrow(
-      /flagged model prompt for writer.*prompt-injection/,
+      /flagged model prompt \(user message, writer\).*prompt-injection/,
     );
     expect(inner.calls).toHaveLength(0);
   });
 
+  it('a REDACT verdict forwards the redacted content to the model', async () => {
+    const scanner = recordingScanner({
+      'essay text': {
+        effectiveContent: 'essay [REDACTED:GENERIC_API_KEY] text',
+      },
+    });
+    const inner = fakeModel('the memo');
+    const client = new ScannedModelClient(inner, scanner, { role: 'writer' });
+
+    const result = await client.complete(MESSAGES);
+
+    expect(result).toBe('the memo');
+    expect(inner.calls[0]).toEqual([
+      { role: 'system', content: 'grade fairly' },
+      { role: 'user', content: 'essay [REDACTED:GENERIC_API_KEY] text' },
+    ]);
+  });
+
+  it('a redacted output returns the redacted completion', async () => {
+    const scanner = recordingScanner({
+      'raw completion': { effectiveContent: 'clean completion' },
+    });
+    const client = new ScannedModelClient(
+      fakeModel('raw completion'),
+      scanner,
+      { role: 'evaluator' },
+    );
+    expect(await client.complete(MESSAGES)).toBe('clean completion');
+  });
+
   it('a flagged output never reaches the caller', async () => {
-    const scanner = recordingScanner(['output']);
+    const scanner = recordingScanner({
+      'poisoned completion': { flagged: true },
+    });
     const inner = fakeModel('poisoned completion');
     const client = new ScannedModelClient(inner, scanner, {
       role: 'evaluator',

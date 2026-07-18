@@ -114,6 +114,9 @@ async function main(): Promise<void> {
       );
     }
     const apiKey = process.env.OPENAI_API_KEY;
+    // Reasoning models (e.g. Nemotron Nano) spend completion budget on a
+    // separate reasoning stream before any content; 1024 is not enough.
+    const maxTokens = Number(process.env.MODEL_MAX_TOKENS ?? 4096);
     const clock = config.clock ?? systemClock;
     config.clock = clock; // live model output is non-deterministic anyway
     // With a scanner active, every model interaction is scanned per request
@@ -127,6 +130,7 @@ async function main(): Promise<void> {
         new OpenAiCompatibleClient({
           baseUrl,
           model: writerModel,
+          maxTokens,
           ...(apiKey ? { apiKey } : {}),
         }),
         'writer',
@@ -139,6 +143,7 @@ async function main(): Promise<void> {
         new OpenAiCompatibleClient({
           baseUrl,
           model: process.env.EVALUATOR_MODEL ?? writerModel,
+          maxTokens,
           ...(apiKey ? { apiKey } : {}),
         }),
         'evaluator',

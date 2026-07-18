@@ -66,8 +66,17 @@ interface EvaluationResponse {
       rule_name?: string;
       risk_level?: string;
     }>;
+    /** On REDACT, the transformed payload the caller should forward. */
+    effective_interaction?: {
+      messages?: Array<{
+        content?: Array<{ type?: string; text?: string }>;
+      }>;
+    };
   };
 }
+
+/** Canonical roles the evaluation API accepts on a message. */
+const CANONICAL_ROLES = new Set(['system', 'user', 'assistant', 'tool']);
 
 export class HiddenLayerScanner implements RuntimeSecurityScanner {
   readonly name = 'hiddenlayer-aidr@interaction-evaluations-v2';
@@ -110,9 +119,17 @@ export class HiddenLayerScanner implements RuntimeSecurityScanner {
           interaction: {
             messages: [
               {
-                // Model output is the assistant speaking; ingested content and
-                // prompts are untrusted input entering the context window.
-                role: kind === 'output' ? 'assistant' : 'user',
+                // Callers may name the exact canonical role via
+                // metadata.messageRole (the scanned-model-client does, per
+                // chat message). Fallback: model output is the assistant
+                // speaking; ingested content and prompts are untrusted input.
+                role:
+                  metadata['messageRole'] &&
+                  CANONICAL_ROLES.has(metadata['messageRole'])
+                    ? metadata['messageRole']
+                    : kind === 'output'
+                      ? 'assistant'
+                      : 'user',
                 content: [{ type: 'text', text: content }],
               },
             ],
@@ -130,13 +147,26 @@ export class HiddenLayerScanner implements RuntimeSecurityScanner {
 
     const payload = (await response.json()) as EvaluationResponse;
     const findings = parseDetections(payload);
-    const action = payload.outcome?.action ?? 'NONE';
+    const action = payload.outcome?.action;
+    // Response policy (ours, documented): DETECT and BLOCK fail closed.
+    // REDACT is the policy explicitly choosing proceed-with-redaction — the
+    // transformed payload is surfaced so the caller forwards it instead.
+    // (Live 2026-07-18: REDACT can arrive with an empty detections array,
+    // e.g. GENERIC_API_KEY PII masking, so `action` is the verdict source.)
+    const flagged = action
+      ? action === 'DETECT' || action === 'BLOCK'
+      : findings.length > 0;
+    const effectiveContent =
+      action === 'REDACT'
+        ? payload.outcome?.effective_interaction?.messages?.[0]?.content?.find(
+            (part) => part.type === 'text' && typeof part.text === 'string',
+          )?.text
+        : undefined;
     return {
-      // DETECT, REDACT, and BLOCK all mean detections fired; this agent is
-      // fail-closed at every boundary, so any of them flags the content.
-      flagged: action !== 'NONE' || findings.length > 0,
+      flagged,
       findings,
       scanner: this.name,
+      ...(effectiveContent !== undefined ? { effectiveContent } : {}),
     };
   }
 
