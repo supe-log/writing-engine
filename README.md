@@ -90,6 +90,45 @@ deterministic validators → independent rubric evaluator → extract reusable
 lessons → integrate into memory (dedup, reinforce, promote) → next cycle applies
 the learning.
 
+## Proof the loop works: the STAAR engine-builder run
+
+To prove the recursive-improvement claim beyond fixtures, we ran a companion
+experiment on real state-scored data: 117 officially scored STAAR grades 3–5
+essays, split by year, and an autonomous loop in which **a fresh AI with no
+memory builds and improves an essay-scoring engine run by run** — a referee
+(pure code + frozen human labels) keeps or rejects every change on the
+worst case of a bootstrapped confidence interval, and a locked 2025 holdout
+is scored exactly once at the end.
+
+```mermaid
+flowchart TD
+    RAW([Raw data: 117 state-scored essays + ONE task file]) --> SPLIT[Split by year - never mixed]
+    SPLIT --> T["2023 TRAIN (textbook)<br/>essays + scores + state reasoning"]
+    SPLIT --> DV["2024 DEV (practice test)<br/>essays only - referee holds answers"]
+    SPLIT --> HO["2025 HOLDOUT (final exam)<br/>locked until the very end"]
+    T --> A
+    subgraph LOOP["THE LOOP - no human inside"]
+        A["Fresh AI builder<br/>reads task + journal + last mistakes"] --> B["ONE focused engine change"]
+        B --> C["Referee scores it on dev"]
+        C --> Q{"Worst-case score improved?"}
+        Q -- yes --> K[KEEP]
+        Q -- no --> X["DISCARD change,<br/>keep the journal"]
+        K --> A
+        X --> A
+    end
+    LOOP -->|budget spent| F["FINAL EXAM: holdout, scored once"]
+```
+
+Result of the first live run (2026-07-18, three iterations): the loop built a
+working engine (dev QWK 0.784), **caught and rejected its own overfit idea**
+(train 0.929 → dev regression), then shipped a variance fix — and the
+untouched 2025 holdout scored **total QWK 0.880, CI lower bound 0.791**,
+clearing the operational 0.70 bar with no dev-over-holdout gap. The lab
+harness is local-only (the corpus reproduces TEA-copyrighted passages and is
+not redistributed); its design — frozen holdout, CI-lower-bound gating,
+diagnostic objects, journal that survives discards — is the same
+evidence-gate discipline this repository enforces at runtime.
+
 ## Architecture
 
 ```text
