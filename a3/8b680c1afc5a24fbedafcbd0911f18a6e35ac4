@@ -1,0 +1,36 @@
+src/cli/heartbeat.ts
+  s_852ea5c5b4c4ca::t_0534cdecd3cf90 12-15
+  s_852ea5c5b4c4ca::t_25e5463995386f 107-108
+  s_852ea5c5b4c4ca::t_a953e009570619 109-110
+  s_852ea5c5b4c4ca::t_e4d1a97d81d6a3 105-106,111-112
+docs/bounties/vllm.md
+  s_852ea5c5b4c4ca::t_0b750db9cb3aca 41,43-74
+tests/securityScanner.test.ts
+  s_852ea5c5b4c4ca::t_54d32401f19fab 230-261
+README.md
+  s_852ea5c5b4c4ca::t_a77ff6bfa40530 44-52
+  s_852ea5c5b4c4ca::t_9c760850ba1564 30-37
+  s_852ea5c5b4c4ca::t_cc47d2bae91852 13-29,38-43
+src/adapters/security/HiddenLayerScanner.ts
+  s_852ea5c5b4c4ca::t_63dc8578c32a8a 175-192
+  s_852ea5c5b4c4ca::t_6fcbdcaaeed7e3 51-59
+  s_852ea5c5b4c4ca::t_c39448cfbdeb07 90-102
+  s_852ea5c5b4c4ca::t_c3527c15a72a5f 123
+  s_852ea5c5b4c4ca::t_8c4e25fd93b008 109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "a38b680c1afc5a24fbedafcbd0911f18a6e35ac4",
+  "prompts": {},
+  "sessions": {
+    "s_852ea5c5b4c4ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8172ac63-781d-4a46-9302-9721c9739179",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
