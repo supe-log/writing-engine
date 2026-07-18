@@ -1,0 +1,31 @@
+src/adapters/evidenceGate/LayeredEvidenceGateEvaluator.ts
+  s_b0f8c979519f24::t_5e11ead26b3d1e 426-433
+src/fixtures/staarEvidence.ts
+  s_b0f8c979519f24::t_1d3af7eb1dd5c2 80-83
+  s_b0f8c979519f24::t_9d4693cecc742b 86-87
+  s_b0f8c979519f24::t_018c45deecdc96 112-115
+  s_b0f8c979519f24::t_99777f8de16f86 132-134
+  s_b0f8c979519f24::t_78abe17342e20e 5-9
+src/domain/evidenceGate.ts
+  s_b0f8c979519f24::t_dc9329b155afcf 210-216
+tests/evidenceGate.test.ts
+  s_b0f8c979519f24::t_dfec2df74c9d61 323-342
+docs/evidence-gates.md
+  s_b0f8c979519f24::t_b869d44b3b16f1 342-344
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "d3b1ce4ed14a8b84aaae29e4bfa148a97e7c1699",
+  "prompts": {},
+  "sessions": {
+    "s_b0f8c979519f24": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "40071f7c-61f1-40b4-a76e-fee7d3cec7fd",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@Logans-MacBook-Pro.local>"
+    }
+  }
+}
