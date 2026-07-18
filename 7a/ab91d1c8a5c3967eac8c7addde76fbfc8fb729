@@ -1,0 +1,39 @@
+src/cli/heartbeat.ts
+  s_b0f8c979519f24::t_6d72108d093e83 29-36
+  s_b0f8c979519f24::t_5abfe0ced5388d 5-7
+  s_b0f8c979519f24::t_5c133d8baeab3f 61-91
+src/adapters/writer/ModelWriter.ts
+  s_b0f8c979519f24::t_301c4039af34f4 1-117
+src/core/engine.ts
+  s_b0f8c979519f24::t_04c0b2c8a756dc 68,70
+  s_b0f8c979519f24::t_72db0bd2554625 17-18
+  s_b0f8c979519f24::t_e59b8f8bc62d94 37-40
+tests/modelAdapters.test.ts
+  s_b0f8c979519f24::t_5a158467226629 157
+  s_b0f8c979519f24::t_351d2c963ad8eb 1-25,27-28,31,33-45,47-114,118,120-156,158-259
+  s_b0f8c979519f24::t_c1f4abd2b01c61 46
+  s_b0f8c979519f24::t_999967ca3baad6 26,29-30,32
+  s_b0f8c979519f24::t_9188986c0a2cde 115-117,119
+  s_b0f8c979519f24::t_bb1dd1a0dc18ea 260-261
+src/adapters/evaluator/ModelRubricEvaluator.ts
+  s_b0f8c979519f24::t_80d3a3aa914e7e 1-170
+  s_b0f8c979519f24::t_72cb0161b2adfe 171-174
+src/adapters/model/OpenAiCompatibleClient.ts
+  s_b0f8c979519f24::t_411d88cb71c38f 1-113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "7aab91d1c8a5c3967eac8c7addde76fbfc8fb729",
+  "prompts": {},
+  "sessions": {
+    "s_b0f8c979519f24": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "40071f7c-61f1-40b4-a76e-fee7d3cec7fd",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
