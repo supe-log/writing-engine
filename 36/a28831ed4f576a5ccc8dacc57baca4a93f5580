@@ -1,0 +1,45 @@
+src/ports/index.ts
+  s_852ea5c5b4c4ca::t_b9dc1f78080417 134-151
+  s_852ea5c5b4c4ca::t_baaea7917fa129 133
+.env.example
+  s_852ea5c5b4c4ca::t_325c9e8e9c5b2a 44-53
+  s_852ea5c5b4c4ca::t_161310b1e75965 29-34,37
+tests/securityScanner.test.ts
+  s_852ea5c5b4c4ca::t_7bd60dd548a184 9-13
+  s_852ea5c5b4c4ca::t_a8da424a11e1a1 76-103
+src/adapters/evaluator/ModelRubricEvaluator.ts
+  s_852ea5c5b4c4ca::t_ec0ed9e7f02fef 46
+  s_852ea5c5b4c4ca::t_ec1dd871532ad2 24
+src/adapters/writer/ModelWriter.ts
+  s_852ea5c5b4c4ca::t_a788f7e1df55e0 24,30
+src/adapters/security/ScannedModelClient.ts
+  s_852ea5c5b4c4ca::t_867ed620777599 1-82
+src/core/heartbeat.ts
+  s_852ea5c5b4c4ca::t_26abf9026a1ad6 1-6
+  s_852ea5c5b4c4ca::t_0f538be26ea17a 164-184
+src/cli/heartbeat.ts
+  s_852ea5c5b4c4ca::t_e702d69a5ddb9d 5-8,12
+  s_852ea5c5b4c4ca::t_d2e2b55805bf9c 65-86,100-105,107-114,119-126
+tests/scannedModelClient.test.ts
+  s_852ea5c5b4c4ca::t_9543e6d634ff4b 98-100
+  s_852ea5c5b4c4ca::t_d117bcc419d868 1-97,101-120
+src/adapters/model/OpenAiCompatibleClient.ts
+  s_852ea5c5b4c4ca::t_3062dda45a43fa 22-33
+  s_852ea5c5b4c4ca::t_0aac6c405d5e64 63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "36a28831ed4f576a5ccc8dacc57baca4a93f5580",
+  "prompts": {},
+  "sessions": {
+    "s_852ea5c5b4c4ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8172ac63-781d-4a46-9302-9721c9739179",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
