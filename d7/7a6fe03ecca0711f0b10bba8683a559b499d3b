@@ -1,0 +1,37 @@
+src/ports/index.ts
+  s_b0f8c979519f24::t_9008de57562968 102-132
+src/core/engine.ts
+  s_b0f8c979519f24::t_e3c90076416f95 42-43
+  s_b0f8c979519f24::t_6cd15e70f5965f 79
+  s_b0f8c979519f24::t_ce21cd55a4d6f6 18
+src/adapters/security/HiddenLayerScanner.ts
+  s_b0f8c979519f24::t_c83ebd2890743e 1-188
+src/cli/heartbeat.ts
+  s_b0f8c979519f24::t_478ca7a96920ed 92-112
+  s_b0f8c979519f24::t_2c2978be3bda40 8
+src/core/heartbeat.ts
+  s_b0f8c979519f24::t_246467b773994a 30-36
+  s_b0f8c979519f24::t_6a078e27a24d50 4
+  s_b0f8c979519f24::t_47c9d2f6839dec 119-130
+  s_b0f8c979519f24::t_d1e61cf56ec013 178-214
+  s_b0f8c979519f24::t_f31d467a7c037f 53
+tests/securityScanner.test.ts
+  s_b0f8c979519f24::t_92a1ab58ebd0ea 1-159
+  s_b0f8c979519f24::t_6940385c6f3250 160-161
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "d77a6fe03ecca0711f0b10bba8683a559b499d3b",
+  "prompts": {},
+  "sessions": {
+    "s_b0f8c979519f24": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "40071f7c-61f1-40b4-a76e-fee7d3cec7fd",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
