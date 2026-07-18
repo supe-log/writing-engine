@@ -9,3 +9,13 @@ export const DEMO_TASK: WritingTask = {
   maxWords: 400,
   minCitations: 1,
 };
+
+/** The writing contract used when the heartbeat runs against the live NWS feed. */
+export const LIVE_ALERTS_TASK: WritingTask = {
+  id: 'tx-alerts-memo',
+  audience: 'Texas emergency operations duty officer',
+  format: 'decision-memo',
+  minWords: 40,
+  maxWords: 400,
+  minCitations: 1,
+};

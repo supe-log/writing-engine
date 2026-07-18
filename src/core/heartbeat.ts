@@ -12,6 +12,11 @@ export interface HeartbeatOptions {
   task: WritingTask;
   /** Number of heartbeat ticks to run. */
   ticks: number;
+  /**
+   * Wait between ticks. 0 (the default) keeps offline demo runs instant; live
+   * runs set a real interval so successive polls can observe fresh data.
+   */
+  intervalMs?: number;
 }
 
 /**
@@ -61,6 +66,11 @@ export class Heartbeat {
       );
       results.push(result);
       previous = snapshot;
+
+      const intervalMs = options.intervalMs ?? 0;
+      if (intervalMs > 0 && tick < options.ticks - 1) {
+        await new Promise((resolve) => setTimeout(resolve, intervalMs));
+      }
     }
 
     return results;
