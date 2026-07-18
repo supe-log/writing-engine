@@ -12,6 +12,7 @@
     "demo": "tsx src/cli/demo.ts",
     "benchmark": "tsx src/cli/benchmark.ts",
     "heartbeat": "tsx src/cli/heartbeat.ts",
+    "gate": "tsx src/cli/gate.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.json --noEmit",

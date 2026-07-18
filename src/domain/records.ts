@@ -14,6 +14,7 @@ export const SCHEMA_VERSIONS = {
   evaluation: 1,
   lesson: 1,
   runRecord: 1,
+  decisionRecord: 1,
 } as const;
 
 export type RecordKind = keyof typeof SCHEMA_VERSIONS;

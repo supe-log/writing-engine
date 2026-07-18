@@ -20,6 +20,7 @@ import type {
   ValidatorResult,
   WritingTask,
 } from '../domain/types.js';
+import type { DecisionRecord, DomainEvidence } from '../domain/evidenceGate.js';
 
 /**
  * A live source of public information. The demo adapter replays deterministic
@@ -96,6 +97,19 @@ export interface LessonExtractor {
     validatorResults: ValidatorResult[],
     scope: string,
   ): Lesson[];
+}
+
+/**
+ * Decides how far a writing-assessment domain may be pursued after source
+ * discovery, per docs/evidence-gates.md. Deterministic policy, not a model
+ * call: it consumes the evidence an investigator assembled and emits the
+ * auditable decision record. A successful scrape never yields more than
+ * permission to investigate.
+ */
+export interface EvidenceGateEvaluator {
+  /** Version of the evidence-gates specification this evaluator implements. */
+  readonly specVersion: string;
+  evaluate(evidence: DomainEvidence): DecisionRecord;
 }
 
 /**

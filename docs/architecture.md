@@ -75,6 +75,7 @@ One cycle (`runCycle` in `src/core/pipeline.ts`):
 | `RubricEvaluator`           | `HeuristicRubricEvaluator` — per-dimension pass-ratio proxy                     | Independent model judge (separate prompt), returns calibrated scores + abstention          |
 | `LessonExtractor`           | `CritiqueLessonExtractor` — maps failed checks to reusable repairs              | Model-assisted lesson synthesis with overfit rejection                                     |
 | `Store`                     | `FileSystemStore` — versioned JSON under `data/`                                | Supabase-backed store implementing the same interface                                      |
+| `EvidenceGateEvaluator`     | `LayeredEvidenceGateEvaluator` — deterministic policy over assembled evidence   | Same policy fed by a model-assisted investigator that assembles `DomainEvidence`           |
 
 Wiring happens in exactly one place: `createEngine` in `src/core/engine.ts`.
 
@@ -152,11 +153,15 @@ authority/provenance, ground truth, coverage, evaluation feasibility, operationa
 safety, and outcome value. The gates also decide _which permission tier_ a domain
 qualifies for (investigate, prototype, run a controlled pilot, or operate
 autonomously) — a public scrape alone grants only the first. This is a decision
-policy, not an orchestration stage, and it maps cleanly onto a future
-`EvidenceGateEvaluator` port that emits a machine-readable decision record. See
+policy, not an orchestration stage. It is implemented as the
+`EvidenceGateEvaluator` port (`src/ports/index.ts`) with the deterministic
+`LayeredEvidenceGateEvaluator` adapter
+(`src/adapters/evidenceGate/LayeredEvidenceGateEvaluator.ts`), which consumes a
+`DomainEvidence` assembly and emits the auditable `DecisionRecord` from the
+spec. Run `npm run gate` to evaluate the worked STAAR example. See
 [evidence-gates.md](evidence-gates.md) for the full specification, the
-RED/AMBER/YELLOW/BLUE/GREEN outcomes, the decision algorithm, and a worked STAAR
-example.
+RED/AMBER/YELLOW/BLUE/GREEN outcomes, the decision algorithm, and the worked
+STAAR example; `tests/evidenceGate.test.ts` encodes its acceptance checklist.
 
 See [adr/0001-filesystem-persistence-and-ports.md](adr/0001-filesystem-persistence-and-ports.md)
 for the rationale behind the ports-first, filesystem-first approach.
