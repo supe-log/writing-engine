@@ -9,7 +9,10 @@ import {
 } from '../adapters/model/OpenAiCompatibleClient.js';
 import { ModelWriter } from '../adapters/writer/ModelWriter.js';
 import { ModelRubricEvaluator } from '../adapters/evaluator/ModelRubricEvaluator.js';
-import { HiddenLayerScanner } from '../adapters/security/HiddenLayerScanner.js';
+import {
+  HiddenLayerScanner,
+  type HiddenLayerScannerOptions,
+} from '../adapters/security/HiddenLayerScanner.js';
 import { ScannedModelClient } from '../adapters/security/ScannedModelClient.js';
 import {
   DEMO_TASK,
@@ -98,6 +101,14 @@ async function main(): Promise<void> {
         : {}),
       ...(process.env.HIDDENLAYER_PROJECT_ID
         ? { projectId: process.env.HIDDENLAYER_PROJECT_ID }
+        : {}),
+      ...(process.env.HIDDENLAYER_BLOCK_MIN_SEVERITY
+        ? {
+            blockMinSeverity: process.env
+              .HIDDENLAYER_BLOCK_MIN_SEVERITY as NonNullable<
+              HiddenLayerScannerOptions['blockMinSeverity']
+            >,
+          }
         : {}),
       requesterId: 'writing-engine-heartbeat',
     });

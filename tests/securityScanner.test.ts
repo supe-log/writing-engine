@@ -227,6 +227,38 @@ describe('HiddenLayerScanner', () => {
     expect(result.effectiveContent).toBe('URL: file:[REDACTED]/clean.txt');
   });
 
+  it('DETECT below the block threshold is surfaced but does NOT block (default MEDIUM)', async () => {
+    const fetchFn = stubHl('DETECT', [
+      { rule_name: 'Code Presence', risk_level: 'LOW' },
+    ]);
+    const result = await scanner(fetchFn).scan('output', 'a memo', {});
+    expect(result.flagged).toBe(false);
+    // still reported, so the loop can log/critique it
+    expect(result.findings[0]?.category).toBe('Code Presence');
+  });
+
+  it('DETECT at or above the block threshold fails closed', async () => {
+    const fetchFn = stubHl('DETECT', [
+      { rule_name: 'Prompt Injection', risk_level: 'HIGH' },
+    ]);
+    const result = await scanner(fetchFn).scan('ingested', 'x', {});
+    expect(result.flagged).toBe(true);
+  });
+
+  it('blockMinSeverity=low makes LOW detections block', async () => {
+    const fetchFn = stubHl('DETECT', [
+      { rule_name: 'Code Presence', risk_level: 'LOW' },
+    ]);
+    const s = new HiddenLayerScanner({
+      clientId: 'id',
+      clientSecret: 'secret',
+      blockMinSeverity: 'low',
+      fetchFn,
+      nowMs: () => 1_000_000,
+    });
+    expect((await s.scan('output', 'a memo', {})).flagged).toBe(true);
+  });
+
   it('maps outcome detections to findings and flags on DETECT', async () => {
     const fetchFn = stubHl('DETECT', [
       { rule_name: '[System] Prompt Injection', risk_level: 'HIGH' },

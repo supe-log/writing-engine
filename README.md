@@ -10,13 +10,46 @@ model.
 - **Secondary fit:** Red Hat Live Data (heartbeat consumes an updating feed; freshness changes the output)
 - **Built for:** AITX Community x NVIDIA Claw Agent Hackathon (July 17–19, 2026)
 
-> This repository is a **runnable scaffold with deep module seams**, not a fake
-> finished product. The demo runs end-to-end offline on deterministic fixtures;
-> a **real live feed** (NOAA NWS alerts) and an **enforced evidence gate** are
-> implemented. The writer, researcher, and evaluator in the demo are
-> **heuristics**, clearly separated behind interfaces from the production model
-> ports (Nemotron/vLLM, Supabase, HiddenLayer). Nothing here claims an
-> integration it does not have.
+> The demo runs end-to-end offline on deterministic fixtures with zero keys.
+> Every port also has a **live implementation** wired behind the same
+> interface: a real streaming feed, model inference through self-hosted vLLM /
+> Nemotron, per-request runtime security, and a policy-sandboxed runtime. The
+> sections below say exactly what is proven live versus still being wired —
+> nothing here claims an integration it does not have.
+
+---
+
+## How the one engine covers every track (fishbone)
+
+One heartbeat loop — poll → snapshot → write → grade → learn — is the spine.
+Each hackathon track and sponsor bounty is a rib feeding that spine, not a
+separate project bolted on:
+
+```mermaid
+flowchart LR
+    RI["<b>Recursive Intelligence</b> · track<br/>lessons from each grade applied next run"]:::live --> SPINE
+    LD["<b>Red Hat Live Data</b> · track<br/>essays arrive in a live inbox; NOAA feed"]:::live --> SPINE
+    HL["<b>HiddenLayer</b> · track<br/>every prompt/output/ingest scanned per request"]:::live --> SPINE
+    SPINE{{"Writing Engine<br/>heartbeat loop:<br/>poll → write → grade → learn"}} ==> HEAD(["AITX Claw Agent<br/>submission"])
+    NEMO["<b>Nemotron</b> · bounty<br/>Nano 30B-A3B writes AND judges"]:::live --> SPINE
+    VLLM["<b>vLLM</b> · bounty<br/>self-hosted endpoint on a Brev A100"]:::live --> SPINE
+    NC["<b>NemoClaw + OpenShell</b> · bounty<br/>sandboxed egress + publishing gate"]:::wip --> SPINE
+    ANT["<b>Most Commercializable</b> · Antler<br/>grades 3–5 STAAR assessment"]:::live --> SPINE
+    classDef live fill:#e7f7e7,stroke:#2e7d32,color:#111;
+    classDef wip fill:#fff6e5,stroke:#e08a00,color:#111;
+```
+
+<sub>Green = proven live. Amber = policy authored, sandbox run in progress.</sub>
+
+| Track / bounty                     | What this engine does for it                                                                                               | Status                                      |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| **Recursive Intelligence**         | Independent judge critiques → distilled lesson rules → applied to the next run; baseline-to-latest delta plotted           | ✅ live                                     |
+| **Red Hat Live Data**              | `EssaySubmissionSource` grades essays as they land in an inbox; `NwsAlertsSource` polls real NOAA alerts                   | ✅ live                                     |
+| **HiddenLayer runtime security**   | `/detection/v2` scans ingested content + every model prompt/output per request; poisoned essay blocked, PII spans redacted | ✅ live                                     |
+| **Nemotron** (bounty)              | Nemotron 3 Nano 30B-A3B is both the writer and the separate rubric judge                                                   | ✅ live                                     |
+| **vLLM** (bounty)                  | Nemotron served from a self-hosted OpenAI-compatible vLLM endpoint on a Brev A100 (base-URL swap)                          | ✅ live                                     |
+| **NemoClaw + OpenShell** (bounty)  | Heartbeat mapped to the Bring-Your-Own-Harness blueprint; OpenShell policy is the human publishing gate                    | 🔶 policy authored, sandbox run in progress |
+| **Most Commercializable** (Antler) | Grades-3–5 STAAR constructed-response assessment — a measured, real education workflow                                     | ✅ live                                     |
 
 ---
 

@@ -38,9 +38,37 @@ two hosted-API subscriptions.
 OpenAI-compatible at `http://<host>:8089/v1`; the sandboxed deployment
 reaches it through the OpenShell gateway (`local-inference` preset).
 
-## Measured (to fill from the live run before freeze)
+## Measured (live run, 2026-07-18)
 
-- [ ] Endpoint + model id, GPU type on Brev
-- [ ] Concurrent writer+judge throughput vs sequential (tokens/s, wall-clock
-      per tick) — the continuous-batching win
-- [ ] Full `heartbeat:essays` demo transcript against the vLLM endpoint
+**Serving:** `vllm serve nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16` on a Brev
+**A100-SXM4-80GB** ($1.66/hr), OpenAI-compatible on `:8089`, reached from the
+laptop over an SSH tunnel; `--reasoning-parser nemotron_v3` so the model's
+reasoning stream is separated from clean answer content. 58.8 GiB of weights,
+served with `--max-model-len 32768 --gpu-memory-utilization 0.92`.
+
+**Full loop through vLLM** — `heartbeat:essays`, 3 ticks over the live essay
+inbox, writer AND independent judge both hitting the vLLM endpoint:
+
+- Cycle 0 (baseline) aggregate **0.214** → cycle 2 (5 lessons applied)
+  aggregate **0.629** — **+0.415** recursive improvement, all inference
+  self-hosted.
+- The poisoned essay was still refused at ingestion
+  (`[System] Prompt Injection`, HIGH) — security holds regardless of the
+  inference backend.
+
+**The small-model-punch / efficiency win (continuous batching):** 8 identical
+feedback-generation requests, ~114 tokens each, sequential vs. fired at once:
+
+| Mode                   | Wall-clock | Aggregate throughput |
+| ---------------------- | ---------- | -------------------- |
+| Sequential (8×)        | 7.3 s      | 126 tok/s            |
+| Concurrent (8 at once) | 1.9 s      | 470 tok/s            |
+
+**3.73× speedup** from vLLM's continuous/in-flight batching on a single GPU —
+exactly the property a heartbeat agent needs, where each tick issues writer +
+independent-judge calls and successive ticks overlap. One 30B open model on one
+A100 covers both roles instead of two hosted-frontier-API subscriptions.
+
+**Provider portability proven:** the identical adapter runs against
+Featherless (hosted) and this self-hosted vLLM endpoint with only
+`OPENAI_BASE_URL` changed — see [nemotron.md](nemotron.md).
