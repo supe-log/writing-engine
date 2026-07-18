@@ -2,6 +2,9 @@ import { join } from 'node:path';
 import { createEngine, type EngineConfig } from '../core/engine.js';
 import { systemClock } from '../core/clock.js';
 import { NwsAlertsSource } from '../adapters/source/NwsAlertsSource.js';
+import { OpenAiCompatibleClient } from '../adapters/model/OpenAiCompatibleClient.js';
+import { ModelWriter } from '../adapters/writer/ModelWriter.js';
+import { ModelRubricEvaluator } from '../adapters/evaluator/ModelRubricEvaluator.js';
 import { DEMO_TASK, LIVE_ALERTS_TASK } from '../fixtures/demoTask.js';
 import { DOMAIN_EVIDENCE } from '../fixtures/demoDomainEvidence.js';
 
@@ -23,6 +26,14 @@ import { DOMAIN_EVIDENCE } from '../fixtures/demoDomainEvidence.js';
  *   (YELLOW: write-cycles permitted). Setting GATE_DOMAIN=tx-civic-memo on a
  *   live run is the explicit operator override that treats live alerts as
  *   in-boundary.
+ *
+ * Model selection (env):
+ *   MODEL_ADAPTER=heuristic (default) — deterministic demo writer/evaluator.
+ *   MODEL_ADAPTER=openai — real model writer + INDEPENDENT model judge via an
+ *     OpenAI-compatible endpoint (vLLM-served Nemotron on a GPU box, or
+ *     Featherless). Requires OPENAI_BASE_URL and WRITER_MODEL; honors
+ *     OPENAI_API_KEY and EVALUATOR_MODEL (defaults to WRITER_MODEL, but the
+ *     judge is always a SEPARATE call).
  */
 async function main(): Promise<void> {
   const live = (process.env.SOURCE_ADAPTER ?? 'fixture') === 'live';
@@ -45,6 +56,37 @@ async function main(): Promise<void> {
     });
     // Live provenance must carry real retrieval times.
     config.clock = systemClock;
+  }
+
+  const modelAdapter = process.env.MODEL_ADAPTER ?? 'heuristic';
+  if (modelAdapter === 'openai') {
+    const baseUrl = process.env.OPENAI_BASE_URL;
+    const writerModel = process.env.WRITER_MODEL;
+    if (!baseUrl || !writerModel) {
+      throw new Error(
+        'MODEL_ADAPTER=openai requires OPENAI_BASE_URL and WRITER_MODEL ' +
+          '(see .env.example; e.g. a vLLM endpoint from docs/references/vllm-quickstart.md).',
+      );
+    }
+    const apiKey = process.env.OPENAI_API_KEY;
+    const clock = config.clock ?? systemClock;
+    config.clock = clock; // live model output is non-deterministic anyway
+    config.writer = new ModelWriter(
+      new OpenAiCompatibleClient({
+        baseUrl,
+        model: writerModel,
+        ...(apiKey ? { apiKey } : {}),
+      }),
+      clock,
+    );
+    // Independent judge: its own client and (ideally) its own model.
+    config.evaluator = new ModelRubricEvaluator(
+      new OpenAiCompatibleClient({
+        baseUrl,
+        model: process.env.EVALUATOR_MODEL ?? writerModel,
+        ...(apiKey ? { apiKey } : {}),
+      }),
+    );
   }
 
   const gateDomain =

@@ -14,6 +14,8 @@ import { Heartbeat, type GateDeps, type HeartbeatDeps } from './heartbeat.js';
 import type {
   EvidenceGateEvaluator,
   LiveSourceAdapter,
+  RubricEvaluator,
+  Writer,
 } from '../ports/index.js';
 import type { DomainEvidence, PermissionTier } from '../domain/evidenceGate.js';
 
@@ -32,6 +34,10 @@ export interface EngineConfig {
   clock?: Clock;
   /** Defaults to the offline FixtureSourceAdapter. */
   source?: LiveSourceAdapter;
+  /** Defaults to the deterministic TemplateWriter (e.g. swap in ModelWriter). */
+  writer?: Writer;
+  /** Defaults to the deterministic heuristic (e.g. swap in ModelRubricEvaluator). */
+  evaluator?: RubricEvaluator;
   gate?: GateConfig;
 }
 
@@ -59,9 +65,9 @@ export function createEngine(config: EngineConfig): {
     source: config.source ?? new FixtureSourceAdapter(),
     snapshotService: new ProvenanceSnapshotService(clock),
     researcher: new HeuristicResearcher(),
-    writer: new TemplateWriter(clock),
+    writer: config.writer ?? new TemplateWriter(clock),
     validator: new DeterministicValidators(),
-    evaluator: new HeuristicRubricEvaluator(),
+    evaluator: config.evaluator ?? new HeuristicRubricEvaluator(),
     extractor: new CritiqueLessonExtractor(clock),
     memory,
     store,
