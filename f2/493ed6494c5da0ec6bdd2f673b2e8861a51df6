@@ -1,0 +1,37 @@
+src/fixtures/demoDomainEvidence.ts
+  s_b0f8c979519f24::t_cf5ab56a8da001 276-345,350
+  s_b0f8c979519f24::t_59d724ae767bbb 152-154,156-160,162-163
+  s_b0f8c979519f24::t_376200aa5405f9 138
+src/benchmark/fixtures/nws-benchmark.json
+  s_b0f8c979519f24::t_c331911570f5aa 1-96
+tests/heartbeatGate.test.ts
+  s_b0f8c979519f24::t_29fc872ef9af45 40
+  s_b0f8c979519f24::t_984df3b98284f5 8
+  s_b0f8c979519f24::t_0e6e03243c83a9 61
+src/cli/heartbeat.ts
+  s_b0f8c979519f24::t_77a25c3817c28e 24-27
+src/cli/benchmark.ts
+  s_b0f8c979519f24::t_0dc28945340055 82-84
+  s_b0f8c979519f24::t_97f0936b8eb837 1-2,5,9-16,18,20-22,26-28,31
+  s_b0f8c979519f24::t_eaf6692d08f588 32-33,38-39,85-86
+tests/demoDomainEvidence.test.ts
+  s_b0f8c979519f24::t_4b0865fd0c8876 6
+  s_b0f8c979519f24::t_79b2e0279fb8a7 20-21,26-30
+  s_b0f8c979519f24::t_62548360bbc463 31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "f2493ed6494c5da0ec6bdd2f673b2e8861a51df6",
+  "prompts": {},
+  "sessions": {
+    "s_b0f8c979519f24": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "40071f7c-61f1-40b4-a76e-fee7d3cec7fd",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
