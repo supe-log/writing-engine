@@ -7,15 +7,17 @@
 
 Writing agents repeat the same mistakes forever because every prompt starts
 from scratch — and worse, they'll confidently write about anything, whether or
-not they have the evidence to do it well.
+not they have the evidence to do it well. This bites anyone deploying
+autonomous writers or graders: ops teams, ed-tech assessment builders, any
+team whose agent must know what it hasn't earned the right to do yet.
 
 **Writing Engine** is a heartbeat-driven agent that watches live public data
 (real NOAA NWS alerts for Texas), writes source-grounded decision memos for
 operations staff, grades itself against a frozen seven-dimension rubric, and
-keeps only the lessons that measurably raise its scores. On a frozen benchmark
-it improves from a lesson-free baseline of 0.57 to 1.00 — including on a
-held-out task it never learns from, so the improvement is generalization, not
-overfitting. Lessons persist across restarts and compound: our live runs
+keeps only the lessons that measurably raise its scores. On its frozen
+benchmark fixture it improves from a lesson-free baseline of 0.57 to 1.00 —
+including on a held-out task it never learns from, so the improvement is
+generalization, not overfitting. Lessons persist across restarts and compound: our live runs
 applied six previously-learned rules to brand-new storm data.
 
 The differentiator is the **evidence gate**: a runtime-enforced policy
@@ -28,10 +30,8 @@ permission on camera by acquiring a benchmark.
 
 Untrusted feed content passes a fail-closed HiddenLayer scan seam; model
 inference runs behind one OpenAI-compatible adapter (vLLM-served Nemotron or
-hosted); nothing publishes without a human.
-
-Who it helps: anyone deploying autonomous writers or graders — the engine
-that knows what it hasn't earned the right to do yet.
+hosted); nothing publishes without a human. Impact: agents that earn
+autonomy with measured evidence instead of assuming it.
 
 ---
 
