@@ -50,15 +50,18 @@ export const staarEcrEvidence: DomainEvidence = {
       'conventions=1',
       'conventions=2',
     ],
-    representedScorePoints: [
-      'devOrg=0',
-      'devOrg=1',
-      'devOrg=2',
-      'devOrg=3',
-      'conventions=0',
-      'conventions=1',
-      'conventions=2',
-    ],
+    // Approximate distribution of the 117-response corpus per trait score;
+    // refine from the corpus manifest. Top scores are thin but clear the
+    // 5-example smoke-test minimum, so none are demoted at prototype tier.
+    labeledCountPerScorePoint: {
+      'devOrg=0': 12,
+      'devOrg=1': 50,
+      'devOrg=2': 45,
+      'devOrg=3': 10,
+      'conventions=0': 14,
+      'conventions=1': 85,
+      'conventions=2': 18,
+    },
     invalidCaseTypesCovered: ['blank', 'off-topic'],
     extractionQualityKnown: true,
     // Legal scores are present in aggregate but sparse once split by
@@ -71,7 +74,10 @@ export const staarEcrEvidence: DomainEvidence = {
     untouchedFamilyCount: 1,
     metricsPreregistered: true,
     baselinesDefined: true,
-    repeatedRunsDone: false,
+    // V3.1 ships repeat-aware runs and deterministic consensus reporting,
+    // but the stability benchmark has not been executed yet.
+    exactTraitScoreStabilityRate: null,
+    repeatDisagreementPolicy: 'consensus',
     perCellSamplesSufficient: false,
     // The V2/V3 scorer essentially never predicts the top scores.
     scorePointsWithZeroRecall: ['devOrg=3', 'conventions=2'],
@@ -108,6 +114,15 @@ export const staarEcrEvidence: DomainEvidence = {
     severeErrorLimitsHeld: false,
     continuousMonitoring: false,
     rollbackApproved: false,
+    perScorePrecisionRecallFloorsMet: false,
+    // The V2/V3 scorer compresses toward middle scores.
+    scoreDistributionDivergenceAcceptable: false,
+    routingPerformanceMeasured: false,
+    autoScoreCoverageReported: false,
+    recalibrationTriggersDefined: false,
+    // Benchmarked cascade accuracy is far below 100%: the cascade is not yet
+    // enforced as deterministic orchestration.
+    deterministicRulesVerifiedCorrect: false,
   },
   deterministicRulesImplementable: true,
   supportedBoundary: {

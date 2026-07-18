@@ -24,7 +24,11 @@ function gate(e: DomainEvidence) {
 /** Evidence upgraded until every pilot minimum passes. */
 function pilotReady(e: DomainEvidence): void {
   e.coverage.minLabeledPerReportedCell = 10;
-  e.evaluation.repeatedRunsDone = true;
+  for (const score of e.coverage.supportedScorePoints) {
+    e.coverage.labeledCountPerScorePoint[score] = 20;
+  }
+  e.evaluation.exactTraitScoreStabilityRate = 0.97;
+  e.evaluation.repeatDisagreementPolicy = 'consensus';
   e.evaluation.perCellSamplesSufficient = true;
   e.evaluation.scorePointsWithZeroRecall = [];
   e.evaluation.blindExpertReviewDone = true;
@@ -45,6 +49,12 @@ function autonomyReady(e: DomainEvidence): void {
     severeErrorLimitsHeld: true,
     continuousMonitoring: true,
     rollbackApproved: true,
+    perScorePrecisionRecallFloorsMet: true,
+    scoreDistributionDivergenceAcceptable: true,
+    routingPerformanceMeasured: true,
+    autoScoreCoverageReported: true,
+    recalibrationTriggersDefined: true,
+    deterministicRulesVerifiedCorrect: true,
   };
 }
 
@@ -204,15 +214,38 @@ describe('AMBER: missing but acquirable evidence (spec §6)', () => {
     expect(record.report.missingEvidence.join(' ')).toMatch(/prompt families/);
   });
 
-  it('a supported trait score with no examples blocks the prototype claim', () => {
+  it('no trait score clearing the smoke-test minimum leaves nothing to prototype', () => {
     const record = gate(
       evidence((e) => {
-        e.coverage.representedScorePoints =
-          e.coverage.representedScorePoints.filter((s) => s !== 'devOrg=3');
+        for (const score of e.coverage.supportedScorePoints) {
+          e.coverage.labeledCountPerScorePoint[score] = 2;
+        }
       }),
     );
     expect(record.status).toBe('AMBER');
-    expect(record.report.missingEvidence.join(' ')).toMatch(/devOrg=3/);
+  });
+});
+
+describe('scoping instead of blocking (critique: prototype gate was too strict)', () => {
+  it('a thin score point is demoted to unsupported, not a prototype blocker', () => {
+    const record = gate(
+      evidence((e) => {
+        e.coverage.labeledCountPerScorePoint['devOrg=3'] = 2;
+      }),
+    );
+    expect(record.status).toBe('YELLOW');
+    expect(record.unsupportedRegions).toContain('devOrg=3');
+  });
+
+  it('scores below the calibration minimum block the pilot but not the prototype', () => {
+    const record = gate(
+      evidence((e) => {
+        pilotReady(e);
+        e.coverage.labeledCountPerScorePoint['conventions=2'] = 9;
+      }),
+    );
+    expect(record.status).toBe('YELLOW');
+    expect(record.softStops.join(' ')).toMatch(/calibration minimum/);
   });
 });
 
@@ -251,6 +284,37 @@ describe('BLUE: the pilot tier (spec §5)', () => {
       evidence((e) => {
         pilotReady(e);
         e.evaluation.blindExpertReviewDone = false;
+      }),
+    );
+    expect(record.status).toBe('YELLOW');
+  });
+
+  it('unmeasured repeat stability blocks the pilot', () => {
+    const record = gate(
+      evidence((e) => {
+        pilotReady(e);
+        e.evaluation.exactTraitScoreStabilityRate = null;
+      }),
+    );
+    expect(record.status).toBe('YELLOW');
+  });
+
+  it('exact stability below the 95% floor blocks the pilot', () => {
+    const record = gate(
+      evidence((e) => {
+        pilotReady(e);
+        e.evaluation.exactTraitScoreStabilityRate = 0.9;
+      }),
+    );
+    expect(record.status).toBe('YELLOW');
+    expect(record.softStops.join(' ')).toMatch(/stability/);
+  });
+
+  it('an unhandled repeat-disagreement policy blocks the pilot', () => {
+    const record = gate(
+      evidence((e) => {
+        pilotReady(e);
+        e.evaluation.repeatDisagreementPolicy = 'unhandled';
       }),
     );
     expect(record.status).toBe('YELLOW');
@@ -298,6 +362,27 @@ describe('GREEN: bounded autonomy (spec §5)', () => {
       }),
     );
     expect(record.status).toBe('YELLOW');
+  });
+
+  it('unverified deterministic rules block autonomy but not the pilot', () => {
+    const record = gate(
+      evidence((e) => {
+        autonomyReady(e);
+        e.autonomy.deterministicRulesVerifiedCorrect = false;
+      }),
+    );
+    expect(record.status).toBe('BLUE');
+    expect(record.softStops.join(' ')).toMatch(/zero cascade/);
+  });
+
+  it('unmeasured routing performance blocks autonomy', () => {
+    const record = gate(
+      evidence((e) => {
+        autonomyReady(e);
+        e.autonomy.routingPerformanceMeasured = false;
+      }),
+    );
+    expect(record.status).toBe('BLUE');
   });
 });
 

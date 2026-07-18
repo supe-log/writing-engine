@@ -46,6 +46,19 @@ export const STATUS_MAX_PERMISSION: Record<EvidenceGateStatus, PermissionTier> =
 export const MIN_PROMPT_FAMILIES_FOR_PROTOTYPE = 3;
 export const MIN_UNTOUCHED_FAMILIES_FOR_PROTOTYPE = 1;
 export const MIN_LABELED_PER_CELL_FOR_PILOT = 8;
+/**
+ * A supported trait score needs this many labeled examples for a technical
+ * smoke test; scores below it are demoted to unsupportedRegions rather than
+ * blocking the prototype (incomplete prototypes are allowed, unclaimed).
+ */
+export const MIN_LABELED_PER_SCORE_FOR_PROTOTYPE = 5;
+/** Per supported trait score, for preliminary calibration before a pilot. */
+export const MIN_LABELED_PER_SCORE_FOR_PILOT = 15;
+/**
+ * Repeat runs must reproduce the same trait score this often. Within-one-point
+ * stability lets scores churn while "passing"; the pilot floor is exact.
+ */
+export const MIN_EXACT_STABILITY_FOR_PILOT = 0.95;
 
 /** Gate A: what is being scored, for whom, and what decision the score drives. */
 export interface ConstructDefinition {
@@ -107,8 +120,12 @@ export interface CoverageEvidence {
   promptFamilyCount: number;
   /** Every legal score point the domain claims to support (e.g. "devOrg=3"). */
   supportedScorePoints: string[];
-  /** Score points with at least one labeled example in hand. */
-  representedScorePoints: string[];
+  /**
+   * Labeled examples in hand per score point. Scores with fewer than
+   * MIN_LABELED_PER_SCORE_FOR_PROTOTYPE are demoted to unsupportedRegions;
+   * a missing key counts as zero.
+   */
+  labeledCountPerScorePoint: Record<string, number>;
   /** Invalid/adversarial case types covered (off-topic, blank, injection...). */
   invalidCaseTypesCovered: string[];
   /** Extraction/OCR quality is recorded per record, not assumed. */
@@ -133,8 +150,13 @@ export interface EvaluationEvidence {
   metricsPreregistered: boolean;
   /** Human/workflow and trivial baselines defined. */
   baselinesDefined: boolean;
-  /** Repeated runs executed and stability reported. */
-  repeatedRunsDone: boolean;
+  /**
+   * Fraction of repeat runs reproducing the exact trait score, or null when
+   * repeated-run stability has not been measured yet.
+   */
+  exactTraitScoreStabilityRate: number | null;
+  /** How disagreement between repeated model scores is resolved. */
+  repeatDisagreementPolicy: 'consensus' | 'abstain' | 'unhandled';
   /** Per-cell samples large enough for interpretable uncertainty intervals. */
   perCellSamplesSufficient: boolean;
   /** Supported score points the current scorer never predicts. */
@@ -205,6 +227,30 @@ export interface AutonomyEvidence {
   continuousMonitoring: boolean;
   /** A tested, authorized path back to human scoring. */
   rollbackApproved: boolean;
+  /**
+   * "Every score predicted reliably" made measurable: per-score precision and
+   * recall exceed defined floors — no score survives on aggregate accuracy.
+   */
+  perScorePrecisionRecallFloorsMet: boolean;
+  /**
+   * Predicted score distribution stays within an approved divergence from
+   * human scores, with no persistent middle-score collapse.
+   */
+  scoreDistributionDivergenceAcceptable: boolean;
+  /** Accuracy measured separately for auto-scored vs human-routed responses. */
+  routingPerformanceMeasured: boolean;
+  /** The share the engine can score without intervention is reported. */
+  autoScoreCoverageReported: boolean;
+  /**
+   * Recalibration triggers defined: rubric, model, prompt, corpus, or
+   * population changes force a calibration recheck.
+   */
+  recalibrationTriggersDefined: boolean;
+  /**
+   * Deterministic rubric rules (e.g. zero cascade) verified 100% correct with
+   * a dedicated test — a rule error is a defect, not a metric to average.
+   */
+  deterministicRulesVerifiedCorrect: boolean;
 }
 
 /** A rubric, corpus, or reference found during discovery (feasibility report §8). */

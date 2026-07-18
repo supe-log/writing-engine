@@ -20,11 +20,31 @@ import type {
   GateFinding,
 } from '../../domain/evidenceGate.js';
 import {
+  MIN_EXACT_STABILITY_FOR_PILOT,
   MIN_LABELED_PER_CELL_FOR_PILOT,
+  MIN_LABELED_PER_SCORE_FOR_PILOT,
+  MIN_LABELED_PER_SCORE_FOR_PROTOTYPE,
   MIN_PROMPT_FAMILIES_FOR_PROTOTYPE,
   MIN_UNTOUCHED_FAMILIES_FOR_PROTOTYPE,
   STATUS_MAX_PERMISSION,
 } from '../../domain/evidenceGate.js';
+
+/** Labeled examples in hand for a score point (missing key = zero). */
+function labeledCount(e: DomainEvidence, score: string): number {
+  return e.coverage.labeledCountPerScorePoint[score] ?? 0;
+}
+
+/**
+ * Supported scores below the prototype per-score minimum. These are demoted
+ * to unsupportedRegions — an incomplete prototype is allowed as long as it
+ * does not claim the thin regions (the gate scopes claims, it does not block
+ * research).
+ */
+function demotedScorePoints(e: DomainEvidence): string[] {
+  return e.coverage.supportedScorePoints.filter(
+    (s) => labeledCount(e, s) < MIN_LABELED_PER_SCORE_FOR_PROTOTYPE,
+  );
+}
 
 export class LayeredEvidenceGateEvaluator implements EvidenceGateEvaluator {
   readonly specVersion = 'evidence-gates@1';
@@ -221,18 +241,20 @@ function gateC(e: DomainEvidence): GateFinding {
 function minimalCoverage(e: DomainEvidence): boolean {
   return (
     e.coverage.promptFamilyCount >= 1 &&
-    e.coverage.representedScorePoints.length > 0
+    e.coverage.supportedScorePoints.some(
+      (s) => labeledCount(e, s) >= MIN_LABELED_PER_SCORE_FOR_PROTOTYPE,
+    )
   );
 }
 
 function gateD(e: DomainEvidence): GateFinding {
   const c = e.coverage;
-  const unrepresented = c.supportedScorePoints.filter(
-    (s) => !c.representedScorePoints.includes(s),
-  );
+  const thin = demotedScorePoints(e);
   const gaps: string[] = [];
-  if (unrepresented.length > 0) {
-    gaps.push(`unrepresented score points: ${unrepresented.join(', ')}`);
+  if (thin.length > 0) {
+    gaps.push(
+      `score points below the ${MIN_LABELED_PER_SCORE_FOR_PROTOTYPE}-example smoke-test minimum: ${thin.join(', ')}`,
+    );
   }
   if (c.invalidCaseTypesCovered.length === 0) {
     gaps.push('no invalid/adversarial cases covered');
@@ -261,7 +283,8 @@ function gateE(e: DomainEvidence): GateFinding {
     gaps.push('splits not locked at prompt-family level');
   if (!v.metricsPreregistered) gaps.push('metrics not preregistered');
   if (!v.baselinesDefined) gaps.push('no baselines defined');
-  if (!v.repeatedRunsDone) gaps.push('repeated-run stability not measured');
+  if (v.exactTraitScoreStabilityRate === null)
+    gaps.push('repeated-run stability not measured');
   if (!v.perCellSamplesSufficient)
     gaps.push('per-cell samples too few for interpretable CIs');
   return gaps.length === 0
@@ -323,12 +346,12 @@ function meetsPrototypeMinimums(e: DomainEvidence, missing: string[]): boolean {
       `>= ${MIN_PROMPT_FAMILIES_FOR_PROTOTYPE} independent prompt families`,
     );
   }
-  const unrepresented = e.coverage.supportedScorePoints.filter(
-    (s) => !e.coverage.representedScorePoints.includes(s),
-  );
-  if (unrepresented.length > 0) {
+  // Thin score points are demoted to unsupportedRegions rather than blocking
+  // the prototype; only a domain where NO score clears the minimum has
+  // nothing left to prototype on.
+  if (demotedScorePoints(e).length === e.coverage.supportedScorePoints.length) {
     gaps.push(
-      `examples of every supported trait score (missing ${unrepresented.join(', ')})`,
+      `at least one trait score with >= ${MIN_LABELED_PER_SCORE_FOR_PROTOTYPE} labeled examples`,
     );
   }
   if (
@@ -351,6 +374,14 @@ function meetsPilotMinimums(e: DomainEvidence, softStops: string[]): boolean {
       `insufficient per-(score x family) coverage (min ${e.coverage.minLabeledPerReportedCell}, need >= ${MIN_LABELED_PER_CELL_FOR_PILOT})`,
     );
   }
+  const underCalibrated = e.coverage.supportedScorePoints.filter(
+    (s) => labeledCount(e, s) < MIN_LABELED_PER_SCORE_FOR_PILOT,
+  );
+  if (underCalibrated.length > 0) {
+    gaps.push(
+      `scores below the ${MIN_LABELED_PER_SCORE_FOR_PILOT}-example calibration minimum: ${underCalibrated.join(', ')}`,
+    );
+  }
   if (e.evaluation.scorePointsWithZeroRecall.length > 0) {
     gaps.push(
       `zero-recall legal scores cannot pilot: ${e.evaluation.scorePointsWithZeroRecall.join(', ')}`,
@@ -358,8 +389,20 @@ function meetsPilotMinimums(e: DomainEvidence, softStops: string[]): boolean {
   }
   if (!e.evaluation.leakageSafeSplitsAtFamilyLevel)
     gaps.push('no leakage-safe dev/val/test split');
-  if (!e.evaluation.repeatedRunsDone)
+  if (e.evaluation.exactTraitScoreStabilityRate === null) {
     gaps.push('repeated-run stability not measured');
+  } else if (
+    e.evaluation.exactTraitScoreStabilityRate < MIN_EXACT_STABILITY_FOR_PILOT
+  ) {
+    gaps.push(
+      `exact trait-score stability ${e.evaluation.exactTraitScoreStabilityRate} below the ${MIN_EXACT_STABILITY_FOR_PILOT} floor`,
+    );
+  }
+  if (e.evaluation.repeatDisagreementPolicy === 'unhandled') {
+    gaps.push(
+      'no consensus/abstention policy for disagreeing repeated model scores',
+    );
+  }
   if (!e.evaluation.perCellSamplesSufficient)
     gaps.push('per-cell samples too few for interpretable CIs');
   if (!e.evaluation.blindExpertReviewDone) gaps.push('no blind expert review');
@@ -403,6 +446,22 @@ function meetsAutonomyMinimums(
   if (!a.severeErrorLimitsHeld) gaps.push('severe-error limits not held');
   if (!a.continuousMonitoring) gaps.push('no continuous monitoring');
   if (!a.rollbackApproved) gaps.push('no approved rollback to human scoring');
+  if (!a.perScorePrecisionRecallFloorsMet)
+    gaps.push('per-score precision/recall floors not met');
+  if (!a.scoreDistributionDivergenceAcceptable)
+    gaps.push(
+      'score distribution diverges from human scores (or middle-score collapse persists)',
+    );
+  if (!a.routingPerformanceMeasured)
+    gaps.push('auto-scored vs human-routed accuracy not measured separately');
+  if (!a.autoScoreCoverageReported)
+    gaps.push('auto-scoreable coverage rate not reported');
+  if (!a.recalibrationTriggersDefined)
+    gaps.push(
+      'no recalibration triggers for rubric/model/prompt/corpus/population changes',
+    );
+  if (!a.deterministicRulesVerifiedCorrect)
+    gaps.push('deterministic rules (zero cascade) not verified 100% correct');
   softStops.push(...gaps.map((g) => `autonomy minimums: ${g}`));
   return gaps.length === 0;
 }
@@ -414,12 +473,9 @@ function deriveUnsupportedRegions(
   if (status === 'RED' || status === 'AMBER') {
     return e.declaredUnsupportedRegions;
   }
-  const unrepresented = e.coverage.supportedScorePoints.filter(
-    (s) => !e.coverage.representedScorePoints.includes(s),
-  );
   const merged = new Set<string>([
     ...e.declaredUnsupportedRegions,
-    ...unrepresented,
+    ...demotedScorePoints(e),
     ...e.evaluation.scorePointsWithZeroRecall,
   ]);
   return [...merged].sort((a, b) => a.localeCompare(b));

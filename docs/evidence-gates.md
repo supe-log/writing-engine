@@ -305,8 +305,11 @@ That is all. Investigation's job is to produce the feasibility report.
   patched.
 - **Multiple independent prompt families** (default **≥ 3**) so you are not
   learning one prompt.
-- **Some representation of each supported trait score** you claim — if you claim
-  to score Development 0–2, you have examples of 0, 1, and 2.
+- **At least 5 labeled examples per supported trait score** (a technical
+  smoke-test minimum). Scores below the minimum are **demoted to
+  `unsupportedRegions` rather than blocking the prototype** — an incomplete
+  prototype is allowed as long as it does not claim the thin regions. Only a
+  domain where no score clears the minimum has nothing to prototype on.
 - **At least one untouched prompt family** held out from all tuning.
 - **Provenance** (snapshots/checksums) for rubric and sources.
 - **A measurable baseline** to beat.
@@ -315,14 +318,18 @@ That is all. Investigation's job is to produce the feasibility report.
 
 ### To justify a **controlled pilot** (→ BLUE)
 
-- **Adequate per-score and per-family coverage** (default **≥ 8–10 labeled
-  responses per (supported trait score × prompt family)** cell you report on;
+- **Adequate per-score and per-family coverage** (defaults: **≥ 15 labeled
+  responses per supported trait score** for preliminary calibration, and
+  **≥ 8–10 per (supported trait score × prompt family)** cell you report on;
   fewer means you cannot see that cell's error).
 - **No zero-recall legal score:** every supported score point is predicted at
   least sometimes and evaluated — a scorer that _never_ outputs Development 3
   cannot pilot on Development 3.
 - **Leakage-safe dev / validation / test** split at the prompt-family level.
-- **Repeated runs** with reported stability.
+- **Repeated runs with ≥ 95% _exact_ trait-score stability** — within-one-point
+  stability lets scores churn while "passing." Orchestration must be
+  deterministic, and disagreement between repeated model scores must resolve by
+  an explicit **consensus or abstention** policy, never silently.
 - **Blind expert review** of a sample of machine scores by a qualified human who
   does not see the machine's score first.
 - **Abstention and provider-error paths** implemented and tested (a failed model
@@ -346,6 +353,18 @@ That is all. Investigation's job is to produce the feasibility report.
   status, transcription quality) — you cannot claim fairness you never measured.
 - **Protected severe-error limits:** hard caps on the worst errors (e.g. scoring a
   0 essay as a 5, or violating the cascade), monitored continuously.
+- **"Every score predicted reliably," made measurable:** per-score precision and
+  recall exceed defined floors, the predicted score distribution stays within an
+  approved divergence from human scores, and there is no persistent
+  middle-score collapse.
+- **Routing performance and coverage:** accuracy measured **separately** for
+  auto-scored and human-routed responses, and the share the engine can score
+  without intervention reported.
+- **Recalibration triggers:** any change to the rubric, model, prompt, corpus,
+  or population forces a calibration recheck.
+- **Deterministic rules verified at 100%:** the zero cascade (and any analogous
+  rule) is verified exactly correct with a dedicated test — a rule error is an
+  implementation defect, not a metric to average.
 - **Continuous monitoring** of drift and error rates in production.
 - **Approved rollback:** a tested, authorized path to revert to human scoring.
 
@@ -566,17 +585,23 @@ intended to become an assertion.
 **Tier minimums**
 
 - [ ] Prototype: approved+versioned rubric, complete records, ≥ 3 prompt families,
-      each supported trait score represented, ≥ 1 untouched family, provenance,
+      ≥ 5 labeled examples per supported trait score (thinner scores demoted to
+      `unsupportedRegions`, not blocking), ≥ 1 untouched family, provenance,
       measurable baseline; unsupported subset declared.
-- [ ] Pilot: adequate per-(score × family) coverage, no zero-recall legal score,
-      leakage-safe dev/val/test, repeated runs, blind expert review, abstention +
-      error paths, source-fidelity review (if source use matters), conventions
-      diagnostic review (if detailed conventions feedback is produced).
+- [ ] Pilot: ≥ 15 labeled per supported score and adequate per-(score × family)
+      coverage, no zero-recall legal score, leakage-safe dev/val/test, ≥ 95%
+      exact trait-score repeat stability with a consensus/abstention policy for
+      disagreement, blind expert review, abstention + error paths,
+      source-fidelity review (if source use matters), conventions diagnostic
+      review (if detailed conventions feedback is produced).
 - [ ] Autonomy: non-inferiority to qualified human agreement, per-trait metrics +
       CIs, summed-score QWK and SMD reference targets, calibrated confidence +
       retained routing, subgroup slices where lawful/available, protected
-      severe-error limits, continuous monitoring, approved rollback; boundary
-      recorded.
+      severe-error limits, per-score precision/recall floors, distribution
+      divergence within bounds (no middle-score collapse), routing performance
+      measured separately with coverage reported, recalibration triggers,
+      deterministic rules verified 100%, continuous monitoring, approved
+      rollback; boundary recorded.
 
 **Deterministic correctness**
 
