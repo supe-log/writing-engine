@@ -1,0 +1,43 @@
+.env.example
+  s_b0f8c979519f24::t_b380b03aea4120 13,16-25
+docs/architecture.md
+  s_b0f8c979519f24::t_d9e379a63893ac 70
+  s_b0f8c979519f24::t_811b44d3bbb786 132-134
+  s_b0f8c979519f24::t_44207dbf732416 167-174
+  s_b0f8c979519f24::t_46e50494bda901 68-69
+  s_b0f8c979519f24::t_b8c1cda00d7876 71-73
+  s_b0f8c979519f24::t_68eca4d7578130 74-78
+docs/known-limitations.md
+  s_b0f8c979519f24::t_47c985e0e9a377 26
+  s_b0f8c979519f24::t_639c8e3100735c 37-41,46-47
+  s_b0f8c979519f24::t_1f998899c958fe 23-25
+  s_b0f8c979519f24::t_9bf232e8e004b0 27-29
+  s_b0f8c979519f24::t_b51d2ae6c47d6a 21-22,30-31
+docs/dataset-provenance.md
+  s_b0f8c979519f24::t_b63aa82382cfe9 4-7
+  s_b0f8c979519f24::t_b4a8d28ecc6e8d 46,48-49,51-60,62-69
+README.md
+  s_b0f8c979519f24::t_56fc04750cb5e0 127
+  s_b0f8c979519f24::t_52e1667e63a354 191-194
+  s_b0f8c979519f24::t_ab88de12472316 200,202,205-206
+  s_b0f8c979519f24::t_5c49e4a065f280 46-50
+  s_b0f8c979519f24::t_6c9b9e236be2e5 77-86
+  s_b0f8c979519f24::t_b5a560e8a07a1b 14-19
+  s_b0f8c979519f24::t_d90ca3fc397a1a 133-170
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "c9e42ca8f958f1e99753dfee5224075c361b82b8",
+  "prompts": {},
+  "sessions": {
+    "s_b0f8c979519f24": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "40071f7c-61f1-40b4-a76e-fee7d3cec7fd",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
