@@ -1,0 +1,22 @@
+src/fixtures/staarEvidence.ts
+  s_d08dd72b7d946e::t_5ec49a91ef4ea1 11-23,25-26
+  s_d08dd72b7d946e::t_b8a42f18ac3edf 99-103
+tests/evidenceGate.test.ts
+  s_d08dd72b7d946e::t_61fd27becfe519 79,82-85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "a9d2b231c05a9a289b5f51ef49098adc19b0fcd2",
+  "prompts": {},
+  "sessions": {
+    "s_d08dd72b7d946e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2c207ab5-d663-4903-8953-a5a193b30028",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
