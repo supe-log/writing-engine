@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Runtime data store (demo persistence lives here; regenerated on every run)
+data/
+
+# Test coverage
+coverage/
+
+# Environment / secrets
+.env
+.env.local
+*.local
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.log
+npm-debug.log*

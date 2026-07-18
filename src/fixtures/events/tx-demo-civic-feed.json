@@ -1,0 +1,32 @@
+{
+  "feed": "tx-demo-civic-feed",
+  "description": "Synthetic public-data feed modeling a Texas civic dataset that refreshes on an interval. Two successive polls return the same event id with updated metrics, so the engine can detect genuine freshness (what changed and why now) rather than re-summarizing a static download. See docs/dataset-provenance.md.",
+  "events": [
+    {
+      "id": "district-enrollment-2026-w28",
+      "feed": "tx-demo-civic-feed",
+      "url": "https://example.org/tx-demo/open-data/district-enrollment?week=28",
+      "title": "Region 13 district enrollment — week 28 snapshot",
+      "body": "Weekly enrollment snapshot for the Region 13 education service area. Total enrolled students across reporting districts, plus the count of districts flagged for chronic absenteeism above the state threshold. Figures are provisional and revised as districts report.",
+      "publishedAt": "2026-07-18T08:00:00.000Z",
+      "metrics": {
+        "totalEnrolled": 412300,
+        "districtsReporting": 58,
+        "chronicAbsenteeismFlags": 9
+      }
+    },
+    {
+      "id": "district-enrollment-2026-w28",
+      "feed": "tx-demo-civic-feed",
+      "url": "https://example.org/tx-demo/open-data/district-enrollment?week=28",
+      "title": "Region 13 district enrollment — week 28 snapshot (revised)",
+      "body": "Revised weekly enrollment snapshot for the Region 13 education service area. Late-reporting districts have now submitted figures, raising the total and adding two districts to the chronic-absenteeism watch list. Figures remain provisional.",
+      "publishedAt": "2026-07-18T14:00:00.000Z",
+      "metrics": {
+        "totalEnrolled": 418750,
+        "districtsReporting": 61,
+        "chronicAbsenteeismFlags": 11
+      }
+    }
+  ]
+}

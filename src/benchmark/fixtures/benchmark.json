@@ -1,0 +1,84 @@
+{
+  "name": "writing-engine-benchmark",
+  "version": 1,
+  "frozen": true,
+  "description": "Frozen benchmark for the Writing Engine. Three source-grounded decision-memo tasks share one feed scope so a lesson learned on one task is expected to help the others. Task 3 is HELD OUT: the engine never extracts lessons from it, so any improvement on task 3 across cycles must come from lessons learned on tasks 1 and 2 — a guard against prompt/benchmark overfitting. Do not edit after a baseline is recorded; bump `version` and re-baseline instead.",
+  "scope": "tx-demo-civic-feed",
+  "tasks": [
+    {
+      "id": "bench-enrollment",
+      "heldOut": false,
+      "task": {
+        "id": "bench-enrollment",
+        "audience": "Region 13 education operations lead",
+        "format": "decision-memo",
+        "minWords": 40,
+        "maxWords": 400,
+        "minCitations": 1
+      },
+      "event": {
+        "id": "bench-district-enrollment",
+        "feed": "tx-demo-civic-feed",
+        "url": "https://example.org/tx-demo/open-data/district-enrollment?bench=1",
+        "title": "Benchmark: district enrollment shift",
+        "body": "Frozen benchmark record describing an enrollment shift and a change in the count of districts flagged for chronic absenteeism.",
+        "publishedAt": "2026-07-18T08:00:00.000Z",
+        "metrics": {
+          "totalEnrolled": 401000,
+          "districtsReporting": 55,
+          "chronicAbsenteeismFlags": 8
+        }
+      }
+    },
+    {
+      "id": "bench-transit",
+      "heldOut": false,
+      "task": {
+        "id": "bench-transit",
+        "audience": "Regional transit operations lead",
+        "format": "decision-memo",
+        "minWords": 40,
+        "maxWords": 400,
+        "minCitations": 1
+      },
+      "event": {
+        "id": "bench-transit-ontime",
+        "feed": "tx-demo-civic-feed",
+        "url": "https://example.org/tx-demo/open-data/transit-ontime?bench=1",
+        "title": "Benchmark: transit on-time performance change",
+        "body": "Frozen benchmark record describing a change in on-time performance and the number of routes flagged for chronic delay.",
+        "publishedAt": "2026-07-18T08:00:00.000Z",
+        "metrics": {
+          "onTimePercent": 82,
+          "routesReporting": 40,
+          "chronicAbsenteeismFlags": 5
+        }
+      }
+    },
+    {
+      "id": "bench-airquality-heldout",
+      "heldOut": true,
+      "task": {
+        "id": "bench-airquality-heldout",
+        "audience": "County public-health operations lead",
+        "format": "decision-memo",
+        "minWords": 40,
+        "maxWords": 400,
+        "minCitations": 1
+      },
+      "event": {
+        "id": "bench-airquality",
+        "feed": "tx-demo-civic-feed",
+        "url": "https://example.org/tx-demo/open-data/air-quality?bench=1",
+        "title": "Benchmark (held out): air-quality index change",
+        "body": "Frozen held-out benchmark record describing an air-quality index change and the number of monitors flagged above threshold.",
+        "publishedAt": "2026-07-18T08:00:00.000Z",
+        "metrics": {
+          "airQualityIndex": 96,
+          "monitorsReporting": 22,
+          "chronicAbsenteeismFlags": 3
+        }
+      }
+    }
+  ]
+}

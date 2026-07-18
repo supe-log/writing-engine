@@ -1,0 +1,43 @@
+{
+  "name": "writing-engine",
+  "version": "0.1.0",
+  "description": "A heartbeat-driven writing agent that turns live public information into timely, source-grounded writing and measurably improves through persistent evaluation memory.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "demo": "tsx src/cli/demo.ts",
+    "benchmark": "tsx src/cli/benchmark.ts",
+    "heartbeat": "tsx src/cli/heartbeat.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test"
+  },
+  "keywords": [
+    "recursive-intelligence",
+    "heartbeat-agent",
+    "writing-agent",
+    "live-data",
+    "self-evaluation",
+    "hackathon"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@typescript-eslint/eslint-plugin": "^7.16.0",
+    "@typescript-eslint/parser": "^7.16.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.2",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3",
+    "vitest": "^2.0.3"
+  }
+}
