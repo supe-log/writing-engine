@@ -15,6 +15,7 @@ import type {
   EvidenceGateEvaluator,
   LiveSourceAdapter,
   RubricEvaluator,
+  RuntimeSecurityScanner,
   Writer,
 } from '../ports/index.js';
 import type { DomainEvidence, PermissionTier } from '../domain/evidenceGate.js';
@@ -38,6 +39,8 @@ export interface EngineConfig {
   writer?: Writer;
   /** Defaults to the deterministic heuristic (e.g. swap in ModelRubricEvaluator). */
   evaluator?: RubricEvaluator;
+  /** Optional runtime-security scanner over ingested content (HiddenLayer seam). */
+  scanner?: RuntimeSecurityScanner;
   gate?: GateConfig;
 }
 
@@ -73,6 +76,7 @@ export function createEngine(config: EngineConfig): {
     store,
     clock,
     gate,
+    ...(config.scanner ? { scanner: config.scanner } : {}),
   };
 
   return { heartbeat: new Heartbeat(deps), deps };

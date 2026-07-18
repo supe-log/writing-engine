@@ -99,6 +99,37 @@ export interface LessonExtractor {
   ): Lesson[];
 }
 
+/** One finding from a runtime-security scan. */
+export interface SecurityScanFinding {
+  /** e.g. "prompt-injection", "pii", "guardrail" — scanner-specific. */
+  category: string;
+  severity: string;
+  detail: string;
+}
+
+export interface SecurityScanResult {
+  /** True when the scanner says this content should not proceed. */
+  flagged: boolean;
+  findings: SecurityScanFinding[];
+  scanner: string;
+}
+
+/**
+ * Runtime-security scanner over untrusted content (HiddenLayer seam).
+ * Ingested feed content is scanned at the heartbeat boundary — after poll,
+ * before research — because untrusted public text can carry prompt-injection
+ * attacks. Scanner failures must throw: the caller decides fail-open vs
+ * fail-closed, never a silent pass.
+ */
+export interface RuntimeSecurityScanner {
+  readonly name: string;
+  scan(
+    kind: 'ingested' | 'prompt' | 'output',
+    content: string,
+    metadata: Record<string, string>,
+  ): Promise<SecurityScanResult>;
+}
+
 /**
  * Decides how far a writing-assessment domain may be pursued after source
  * discovery, per docs/evidence-gates.md. Deterministic policy, not a model

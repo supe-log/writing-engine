@@ -5,6 +5,7 @@ import { NwsAlertsSource } from '../adapters/source/NwsAlertsSource.js';
 import { OpenAiCompatibleClient } from '../adapters/model/OpenAiCompatibleClient.js';
 import { ModelWriter } from '../adapters/writer/ModelWriter.js';
 import { ModelRubricEvaluator } from '../adapters/evaluator/ModelRubricEvaluator.js';
+import { HiddenLayerScanner } from '../adapters/security/HiddenLayerScanner.js';
 import { DEMO_TASK, LIVE_ALERTS_TASK } from '../fixtures/demoTask.js';
 import { DOMAIN_EVIDENCE } from '../fixtures/demoDomainEvidence.js';
 
@@ -86,6 +87,27 @@ async function main(): Promise<void> {
         ...(apiKey ? { apiKey } : {}),
       }),
     );
+  }
+
+  // Runtime security (HiddenLayer seam): wired automatically when credentials
+  // are present. Ingested content is scanned fail-closed before research.
+  const hlClientId = process.env.HIDDENLAYER_CLIENT_ID;
+  const hlClientSecret = process.env.HIDDENLAYER_CLIENT_SECRET;
+  if (hlClientId && hlClientSecret) {
+    config.scanner = new HiddenLayerScanner({
+      clientId: hlClientId,
+      clientSecret: hlClientSecret,
+      ...(process.env.HIDDENLAYER_API_URL
+        ? { apiUrl: process.env.HIDDENLAYER_API_URL }
+        : {}),
+      ...(process.env.HIDDENLAYER_AUTH_URL
+        ? { authUrl: process.env.HIDDENLAYER_AUTH_URL }
+        : {}),
+      ...(process.env.HIDDENLAYER_PROJECT_ID
+        ? { projectId: process.env.HIDDENLAYER_PROJECT_ID }
+        : {}),
+      requesterId: 'writing-engine-heartbeat',
+    });
   }
 
   const gateDomain =

@@ -1,6 +1,7 @@
 import type {
   EvidenceGateEvaluator,
   LiveSourceAdapter,
+  RuntimeSecurityScanner,
   SnapshotService,
 } from '../ports/index.js';
 import type { SourceSnapshot, WritingTask } from '../domain/types.js';
@@ -26,6 +27,13 @@ export interface HeartbeatDeps extends PipelineDeps {
   source: LiveSourceAdapter;
   snapshotService: SnapshotService;
   gate: GateDeps;
+  /**
+   * Optional runtime-security scanner (HiddenLayer seam) over freshly
+   * ingested content — after poll, before research. Flagged or unscannable
+   * content is snapshotted (evidence preserved with provenance) but never
+   * written from: fail-closed.
+   */
+  scanner?: RuntimeSecurityScanner;
 }
 
 export interface HeartbeatOptions {
@@ -42,7 +50,7 @@ export interface HeartbeatOptions {
 /** A visible, honest note about a tick that did not produce a cycle. */
 export interface TickNote {
   tick: number;
-  kind: 'gate-refusal' | 'source-error' | 'no-history';
+  kind: 'gate-refusal' | 'source-error' | 'no-history' | 'security-block';
   detail: string;
 }
 
@@ -108,6 +116,18 @@ export class Heartbeat {
         // provenance snapshot even when writing is refused.
         snapshot = this.deps.snapshotService.capture(event);
         await this.deps.store.saveSnapshot(snapshot);
+
+        // Runtime-security boundary (HiddenLayer seam): scan freshly ingested
+        // content before it reaches the researcher. Fail-closed — a flagged
+        // or unscannable event is preserved as evidence but never written
+        // from this tick.
+        if (this.deps.scanner) {
+          const blocked = await this.scanIngested(event, tick, notes);
+          if (blocked) {
+            await this.pause(options, tick);
+            continue;
+          }
+        }
       } else {
         // Nothing new this tick: fall back to the latest known snapshot so the
         // engine can still apply freshly-learned lessons.
@@ -153,6 +173,43 @@ export class Heartbeat {
     }
 
     return { decision, permitted, cycles, notes };
+  }
+
+  /** Returns true when the tick must not proceed to a write-cycle. */
+  private async scanIngested(
+    event: { feed: string; url: string; title: string; body: string },
+    tick: number,
+    notes: TickNote[],
+  ): Promise<boolean> {
+    const scanner = this.deps.scanner;
+    if (!scanner) return false;
+    try {
+      const result = await scanner.scan(
+        'ingested',
+        `${event.title}\n\n${event.body}`,
+        { feed: event.feed, url: event.url },
+      );
+      if (result.flagged) {
+        notes.push({
+          tick,
+          kind: 'security-block',
+          detail:
+            `${result.scanner} flagged ingested content: ` +
+            result.findings
+              .map((f) => `${f.category}(${f.severity})`)
+              .join(', '),
+        });
+        return true;
+      }
+      return false;
+    } catch (err) {
+      notes.push({
+        tick,
+        kind: 'security-block',
+        detail: `scan unavailable (fail-closed): ${err instanceof Error ? err.message : String(err)}`,
+      });
+      return true;
+    }
   }
 
   private async pause(options: HeartbeatOptions, tick: number): Promise<void> {
