@@ -120,6 +120,9 @@ table, and the demo-heuristic-vs-production-model distinction.
 Sponsor technologies (Nemotron, vLLM, Supabase, HiddenLayer, NemoClaw/OpenShell)
 are present as **documented extension seams and TODOs**, not claimed
 integrations. See [docs/architecture.md](docs/architecture.md#extension-seams).
+A hackathon technical reference for the vLLM serving path (derived from
+presentation slides; point-in-time) is at
+[docs/references/vllm-quickstart.md](docs/references/vllm-quickstart.md).
 
 ## Reproducing the demo
 
@@ -168,6 +171,7 @@ docs/          architecture, provenance, limitations, ADRs, submission checklist
 - [docs/known-limitations.md](docs/known-limitations.md) — limitations & next steps
 - [docs/submission-checklist.md](docs/submission-checklist.md) — hackathon submission checklist
 - [docs/adr/](docs/adr/) — architecture decision records
+- [docs/references/vllm-quickstart.md](docs/references/vllm-quickstart.md) — vLLM serving reference (point-in-time, from slides)
 - [docs/organizer/](docs/organizer/) — preserved organizer source-of-truth and planning docs
 
 ## License

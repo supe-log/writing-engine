@@ -132,7 +132,9 @@ integrations**:
   (see `src/adapters/source/LiveSourceAdapter.todo.ts` and `.env.example`).
 - **Nemotron / vLLM** — implement `Researcher`, `Writer`, and/or
   `RubricEvaluator` against an OpenAI-compatible vLLM endpoint serving Nemotron.
-  The evaluator should be a _separate_ model call from the writer.
+  The evaluator should be a _separate_ model call from the writer. See
+  [references/vllm-quickstart.md](references/vllm-quickstart.md) for a
+  hackathon serving reference (slide-derived, point-in-time).
 - **Supabase** — implement `Store` against Supabase, preserving `schemaVersion`.
 - **HiddenLayer** — add a scan step that routes ingested source content, prompts,
   writer output, and (future) tool calls/results through the Runtime Security API
