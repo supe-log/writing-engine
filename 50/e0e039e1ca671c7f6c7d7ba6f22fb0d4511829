@@ -1,0 +1,25 @@
+docs/bounties/vllm.md
+  s_852ea5c5b4c4ca::t_2e48177a5af808 1-46
+docs/known-limitations.md
+  s_852ea5c5b4c4ca::t_d14c7b43278786 26-29
+  s_852ea5c5b4c4ca::t_7acec919d59e67 35-45
+  s_852ea5c5b4c4ca::t_3660cf26ed3e3f 21-25,30-31
+docs/bounties/nemotron.md
+  s_852ea5c5b4c4ca::t_f5a3b20c535855 1-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "50e0e039e1ca671c7f6c7d7ba6f22fb0d4511829",
+  "prompts": {},
+  "sessions": {
+    "s_852ea5c5b4c4ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8172ac63-781d-4a46-9302-9721c9739179",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
