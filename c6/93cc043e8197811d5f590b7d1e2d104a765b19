@@ -1,0 +1,31 @@
+src/cli/heartbeat.ts
+  s_b0f8c979519f24::t_3862228f86e569 2-5,11-16,19,23,26-51
+src/adapters/source/NwsAlertsSource.ts
+  s_b0f8c979519f24::t_551f0acb69c987 1-219
+package.json
+  s_b0f8c979519f24::t_92256953fd4c0f 15
+src/fixtures/demoTask.ts
+  s_b0f8c979519f24::t_c1958ac4be8f05 12-21
+tests/nwsAlertsSource.test.ts
+  s_b0f8c979519f24::t_8b35fff9a94448 1-188
+  s_b0f8c979519f24::t_0070532a38a9de 189-191
+src/core/heartbeat.ts
+  s_b0f8c979519f24::t_38d3807dc4393c 69-73
+  s_b0f8c979519f24::t_a9140199b3d2db 15-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "c693cc043e8197811d5f590b7d1e2d104a765b19",
+  "prompts": {},
+  "sessions": {
+    "s_b0f8c979519f24": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "40071f7c-61f1-40b4-a76e-fee7d3cec7fd",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@Logans-MacBook-Pro.local>"
+    }
+  }
+}
