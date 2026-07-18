@@ -19,3 +19,18 @@ export const LIVE_ALERTS_TASK: WritingTask = {
   maxWords: 400,
   minCitations: 1,
 };
+
+/**
+ * The STAAR-native writing contract: for each essay arriving in the
+ * submissions inbox, write a grading feedback memo a teacher can act on —
+ * strengths, trait-level weaknesses, and one next step, grounded in the
+ * submitted text (cited via its provenance URL).
+ */
+export const STAAR_FEEDBACK_TASK: WritingTask = {
+  id: 'staar-ecr-feedback-memo',
+  audience: 'Texas grades 3-5 writing teacher',
+  format: 'decision-memo',
+  minWords: 40,
+  maxWords: 400,
+  minCitations: 1,
+};

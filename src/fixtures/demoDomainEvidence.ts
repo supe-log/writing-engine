@@ -12,6 +12,7 @@
  */
 
 import type { DomainEvidence } from '../domain/evidenceGate.js';
+import { staarEcrEvidence } from './staarEvidence.js';
 
 /**
  * The offline demo domain: decision memos over the frozen civic fixture feed,
@@ -348,4 +349,5 @@ export const DOMAIN_EVIDENCE: Record<string, DomainEvidence> = {
   [txCivicMemoEvidence.domainId]: txCivicMemoEvidence,
   [nwsAlertsDomainEvidence.domainId]: nwsAlertsDomainEvidence,
   [nwsAlertsPreBenchmarkEvidence.domainId]: nwsAlertsPreBenchmarkEvidence,
+  [staarEcrEvidence.domainId]: staarEcrEvidence,
 };

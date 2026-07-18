@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import { createEngine, type EngineConfig } from '../core/engine.js';
 import { systemClock } from '../core/clock.js';
 import { NwsAlertsSource } from '../adapters/source/NwsAlertsSource.js';
+import { EssaySubmissionSource } from '../adapters/source/EssaySubmissionSource.js';
 import {
   OpenAiCompatibleClient,
   type ModelClient,
@@ -10,7 +11,11 @@ import { ModelWriter } from '../adapters/writer/ModelWriter.js';
 import { ModelRubricEvaluator } from '../adapters/evaluator/ModelRubricEvaluator.js';
 import { HiddenLayerScanner } from '../adapters/security/HiddenLayerScanner.js';
 import { ScannedModelClient } from '../adapters/security/ScannedModelClient.js';
-import { DEMO_TASK, LIVE_ALERTS_TASK } from '../fixtures/demoTask.js';
+import {
+  DEMO_TASK,
+  LIVE_ALERTS_TASK,
+  STAAR_FEEDBACK_TASK,
+} from '../fixtures/demoTask.js';
 import { DOMAIN_EVIDENCE } from '../fixtures/demoDomainEvidence.js';
 
 /**
@@ -20,9 +25,12 @@ import { DOMAIN_EVIDENCE } from '../fixtures/demoDomainEvidence.js';
  *
  * Source selection (env):
  *   SOURCE_ADAPTER=fixture (default) — offline, deterministic.
- *   SOURCE_ADAPTER=live — poll real NOAA NWS active alerts. Also honors
+ *   SOURCE_ADAPTER=essays — STAAR-native: grade student essays arriving in an
+ *     inbox directory (ESSAY_INBOX_DIR, default ./examples/essay-inbox);
+ *     files dropped in mid-run are picked up by later ticks.
+ *   SOURCE_ADAPTER=live — poll real NOAA NWS active alerts (side demo). Honors
  *     NWS_AREA (default TX), LIVE_FEED_URL (full override), LIVE_USER_AGENT,
- *     and HEARTBEAT_INTERVAL_MS (default 30000 in live mode).
+ *     and HEARTBEAT_INTERVAL_MS (default 30000 live / 5000 essays).
  *
  * Gate-domain selection (env):
  *   GATE_DOMAIN — which DomainEvidence the run is gated by. Defaults to
@@ -40,11 +48,13 @@ import { DOMAIN_EVIDENCE } from '../fixtures/demoDomainEvidence.js';
  *     judge is always a SEPARATE call).
  */
 async function main(): Promise<void> {
-  const live = (process.env.SOURCE_ADAPTER ?? 'fixture') === 'live';
+  const sourceAdapter = process.env.SOURCE_ADAPTER ?? 'fixture';
+  const live = sourceAdapter === 'live';
+  const essays = sourceAdapter === 'essays';
   const ticks = Number(process.env.HEARTBEAT_TICKS ?? 1);
   const dataDir = join(
     process.env.WRITING_ENGINE_DATA_DIR ?? './data',
-    live ? 'heartbeat-live' : 'heartbeat',
+    essays ? 'heartbeat-essays' : live ? 'heartbeat-live' : 'heartbeat',
   );
 
   const config: EngineConfig = { dataDir };
@@ -59,6 +69,15 @@ async function main(): Promise<void> {
         : {}),
     });
     // Live provenance must carry real retrieval times.
+    config.clock = systemClock;
+  } else if (essays) {
+    // STAAR-native live feed: student essays dropped into an inbox directory
+    // are graded in arrival order; files added mid-run are picked up by later
+    // ticks. Untrusted student text flows through the same security boundary
+    // as any other ingested content.
+    config.source = new EssaySubmissionSource({
+      inboxDir: process.env.ESSAY_INBOX_DIR ?? './examples/essay-inbox',
+    });
     config.clock = systemClock;
   }
 
@@ -128,7 +147,8 @@ async function main(): Promise<void> {
   }
 
   const gateDomain =
-    process.env.GATE_DOMAIN ?? (live ? 'nws-alerts-tx' : 'tx-civic-memo');
+    process.env.GATE_DOMAIN ??
+    (essays ? 'staar-ecr-g3-5' : live ? 'nws-alerts-tx' : 'tx-civic-memo');
   const evidence = DOMAIN_EVIDENCE[gateDomain];
   if (!evidence) {
     throw new Error(
@@ -137,14 +157,24 @@ async function main(): Promise<void> {
   }
   config.gate = { evidence };
 
-  const task = live ? LIVE_ALERTS_TASK : DEMO_TASK;
-  const intervalMs = live
-    ? Number(process.env.HEARTBEAT_INTERVAL_MS ?? 30_000)
-    : 0;
+  const task = essays
+    ? STAAR_FEEDBACK_TASK
+    : live
+      ? LIVE_ALERTS_TASK
+      : DEMO_TASK;
+  const intervalMs =
+    live || essays
+      ? Number(process.env.HEARTBEAT_INTERVAL_MS ?? (essays ? 5_000 : 30_000))
+      : 0;
 
+  const sourceLabel = essays
+    ? 'essays (submission inbox)'
+    : live
+      ? 'live (NWS alerts)'
+      : 'fixture';
   const { heartbeat } = createEngine(config);
   console.log(
-    `heartbeat: source=${live ? 'live (NWS alerts)' : 'fixture'} task=${task.id} ticks=${ticks}` +
+    `heartbeat: source=${sourceLabel} task=${task.id} ticks=${ticks}` +
       (intervalMs > 0 ? ` interval=${intervalMs}ms` : ''),
   );
   const run = await heartbeat.run({ task, ticks, intervalMs });

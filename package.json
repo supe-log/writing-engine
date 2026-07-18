@@ -13,6 +13,7 @@
     "benchmark": "tsx src/cli/benchmark.ts",
     "heartbeat": "tsx src/cli/heartbeat.ts",
     "heartbeat:live": "SOURCE_ADAPTER=live tsx src/cli/heartbeat.ts",
+    "heartbeat:essays": "SOURCE_ADAPTER=essays tsx src/cli/heartbeat.ts",
     "gate": "tsx src/cli/gate.ts",
     "test": "vitest run",
     "test:watch": "vitest",
