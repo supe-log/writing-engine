@@ -8,9 +8,22 @@
  * 98.3%, cascade accuracy 33.3% on gold-zero observations. The repeats are
  * stable but wrong the same way every time — calibration, not stochasticity.
  *
+ * Later measurements layered on that baseline:
+ * - V3.2 smoke (2026-07-18, gpt-4o-mini + contrastive boundaries, 2023 subset):
+ *   dev QWK 0.522 / conv QWK 0.235 — the contrastive lever regressed and is
+ *   falsified. Conventions=2 recall measured 2/12: no longer literally zero,
+ *   still far below any pilot floor. Development=3 recall stayed 0/12, so it
+ *   remains the zero-recall entry below.
+ * - Judge-model ladder (2026-07-18, gpt-4o plain, single repeat): dev QWK
+ *   0.682, conv QWK 0.770, total QWK 0.776, adjacent 92.3%, cascade 50%;
+ *   Dev=3 recall 4/12, Conv=2 recall 12/12. The judge model, not the prompt,
+ *   was the bottleneck. This is candidate-config evidence only — it has no
+ *   repeat-stability measurement yet, so the stability and recall fields here
+ *   stay pinned to the committed config until the winner passes a 3-repeat.
+ *
  * Expected outcome: YELLOW (prototype ceiling). Prototyping is the right next
- * step; a pilot is reachable but not yet earned (sparse per-cell coverage,
- * zero-recall top scores, no blind review); autonomy is far off.
+ * step; a pilot is reachable but not yet earned (sparse per-cell coverage, a
+ * zero-recall top score, no blind review); autonomy is far off.
  */
 
 import type { DomainEvidence } from '../domain/evidenceGate.js';
@@ -83,9 +96,11 @@ export const staarEcrEvidence: DomainEvidence = {
     exactTraitScoreStabilityRate: 0.966,
     repeatDisagreementPolicy: 'consensus',
     perCellSamplesSufficient: false,
-    // Measured in V3.1: one Conventions=2 prediction in 117 calls;
-    // Development=3 only for a single top essay. Effectively zero recall.
-    scorePointsWithZeroRecall: ['devOrg=3', 'conventions=2'],
+    // V3.1 measured effectively zero recall on both top scores. The V3.2 smoke
+    // (2026-07-18) measured Conventions=2 recall at 2/12 — no longer zero, so
+    // it leaves this list, though it stays far below any pilot floor.
+    // Development=3 recall stayed 0/12 on the committed config.
+    scorePointsWithZeroRecall: ['devOrg=3'],
     blindExpertReviewDone: false,
   },
   safety: {

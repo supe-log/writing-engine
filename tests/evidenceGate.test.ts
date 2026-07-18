@@ -76,10 +76,13 @@ describe('the STAAR ECR worked example (spec §7)', () => {
     expect(record.gates.G_value.pass).toBe(true);
   });
 
-  it('names the zero-recall top scores as unsupported regions', () => {
+  it('names the zero-recall top score as an unsupported region', () => {
     const record = gate(evidence());
     expect(record.unsupportedRegions).toContain('devOrg=3');
-    expect(record.unsupportedRegions).toContain('conventions=2');
+    // Conventions=2 left the zero-recall list after the V3.2 smoke measured
+    // 2/12 recall (2026-07-18); it clears the label smoke-test minimum, so
+    // nothing else demotes it either.
+    expect(record.unsupportedRegions).not.toContain('conventions=2');
     expect(record.unsupportedRegions).toContain('argumentative g5');
   });
 
