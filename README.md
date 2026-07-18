@@ -129,6 +129,15 @@ not redistributed); its design — frozen holdout, CI-lower-bound gating,
 diagnostic objects, journal that survives discards — is the same
 evidence-gate discipline this repository enforces at runtime.
 
+**Build your own:** the whole flow is packaged as a Claude Code skill —
+[`.claude/skills/assessment-loop/`](.claude/skills/assessment-loop/) — invoke
+`/assessment-loop` with your rubric + scored examples and Claude scaffolds the
+lab, splits the data leakage-safe, drives fresh builder agents per iteration,
+and scores a frozen holdout exactly once. A follow-up grades 6–8 transfer run
+(engine onboarded from public scoring-guide PDFs in ~1 hour; holdout 0.798,
+CI-LB 0.641) exposed a premature-stop failure mode that is now encoded in the
+harness as multi-floor stop conditions.
+
 ## Architecture
 
 ```text
