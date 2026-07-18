@@ -22,7 +22,7 @@ Baseline OpenShell policy is deny-by-default with a read-only filesystem
 outside `/sandbox`. On top of that, the presets here allow only:
 
 1. `auth.hiddenlayer.ai:443` — `POST /oauth2/token` only
-2. `api.hiddenlayer.ai:443` — `POST /detection/v1/interactions` only
+2. `api.hiddenlayer.ai:443` — `POST /detection/v2/interaction-evaluations` only
 3. Inference via the OpenShell gateway (`local-inference` preset), or
    `api.featherless.ai:443 POST /v1/chat/completions` as fallback
 

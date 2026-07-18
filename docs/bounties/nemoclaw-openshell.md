@@ -33,7 +33,7 @@ inbox contains exactly that attempt
 
 The complete allowed egress of the agent is three path-scoped routes:
 HiddenLayer token (`POST /oauth2/token`), HiddenLayer interactions
-(`POST /detection/v1/interactions`), and model inference via the gateway.
+(`POST /detection/v2/interaction-evaluations`), and model inference via the gateway.
 Rules are enforced per endpoint + port + method + path + requesting binary,
 so even the allowed hosts expose no other surface. Everything else fails at
 the gateway and is logged.

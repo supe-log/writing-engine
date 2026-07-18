@@ -24,7 +24,8 @@ network_policies:
         protocol: rest
         enforcement: enforce
         rules:
-          - allow: { method: POST, path: '/detection/v1/interactions' }
+          - allow:
+              { method: POST, path: '/detection/v2/interaction-evaluations' }
     binaries:
       # tsx runs the heartbeat under the Node runtime. Verify the path inside
       # the sandbox with: nemoclaw <sandbox> exec -- which node
