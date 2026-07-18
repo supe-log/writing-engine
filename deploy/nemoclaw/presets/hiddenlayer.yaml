@@ -1,0 +1,31 @@
+# HiddenLayer AIDR egress for the writing-engine heartbeat.
+#
+# Path-scoped on purpose: the sandbox may exchange OAuth2 tokens and post
+# interactions for analysis — nothing else on either host. Combined with the
+# deny-by-default baseline, essay text and lesson memory cannot leave the
+# sandbox through any other route.
+#
+# Apply: nemoclaw <sandbox> policy-add --from-file deploy/nemoclaw/presets/hiddenlayer.yaml
+preset:
+  name: writing-engine-hiddenlayer
+  description: 'HiddenLayer AIDR runtime-security scanning (token + interactions only)'
+network_policies:
+  writing_engine_hiddenlayer:
+    name: writing_engine_hiddenlayer
+    endpoints:
+      - host: auth.hiddenlayer.ai
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: POST, path: '/oauth2/token' }
+      - host: api.hiddenlayer.ai
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: POST, path: '/detection/v1/interactions' }
+    binaries:
+      # tsx runs the heartbeat under the Node runtime. Verify the path inside
+      # the sandbox with: nemoclaw <sandbox> exec -- which node
+      - { path: /usr/local/bin/node }

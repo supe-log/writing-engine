@@ -1,0 +1,24 @@
+# OPTIONAL fallback inference route: Featherless hosted OpenAI-compatible API.
+#
+# The primary inference route is vLLM through the host gateway — apply the
+# built-in `local-inference` preset for that (no custom file needed):
+#   nemoclaw <sandbox> policy-add local-inference --yes
+# Only apply THIS preset when the heartbeat runs with
+# OPENAI_BASE_URL=https://api.featherless.ai/v1.
+#
+# Apply: nemoclaw <sandbox> policy-add --from-file deploy/nemoclaw/presets/featherless.yaml
+preset:
+  name: writing-engine-featherless
+  description: 'Featherless OpenAI-compatible inference (chat completions only)'
+network_policies:
+  writing_engine_featherless:
+    name: writing_engine_featherless
+    endpoints:
+      - host: api.featherless.ai
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: POST, path: '/v1/chat/completions' }
+    binaries:
+      - { path: /usr/local/bin/node }
