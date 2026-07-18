@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { createEngine } from '../src/core/engine.js';
 import { DEMO_TASK } from '../src/fixtures/demoTask.js';
 import {
-  nwsAlertsDomainEvidence,
+  nwsAlertsPreBenchmarkEvidence,
   txCivicMemoEvidence,
 } from '../src/fixtures/demoDomainEvidence.js';
 import type { LiveSourceAdapter } from '../src/ports/index.js';
@@ -37,7 +37,7 @@ describe('Heartbeat evidence-gate enforcement', () => {
   it('refuses to write for an AMBER domain but keeps observing', async () => {
     const { heartbeat, deps } = createEngine({
       dataDir: dir,
-      gate: { evidence: nwsAlertsDomainEvidence },
+      gate: { evidence: nwsAlertsPreBenchmarkEvidence },
     });
     const run = await heartbeat.run({ task: DEMO_TASK, ticks: 2 });
 
@@ -58,7 +58,7 @@ describe('Heartbeat evidence-gate enforcement', () => {
     const { heartbeat } = createEngine({
       dataDir: dir,
       gate: {
-        evidence: nwsAlertsDomainEvidence,
+        evidence: nwsAlertsPreBenchmarkEvidence,
         requiredTier: 'investigate',
       },
     });

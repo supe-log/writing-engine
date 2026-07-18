@@ -1,24 +1,42 @@
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createEngine } from '../core/engine.js';
 import { resetDir } from '../core/fsutil.js';
-import { runBenchmark } from '../benchmark/runner.js';
+import { loadBenchmark, runBenchmark } from '../benchmark/runner.js';
 import { RUBRIC_DIMENSIONS } from '../domain/types.js';
 import type { Delta } from '../core/report.js';
 
+const here = dirname(fileURLToPath(import.meta.url));
+
+/** Named fixtures; any other BENCHMARK_FIXTURE value is treated as a path. */
+const NAMED_FIXTURES: Record<string, string | undefined> = {
+  default: undefined,
+  nws: join(here, '../benchmark/fixtures/nws-benchmark.json'),
+};
+
 /**
- * Run the frozen benchmark across several learning cycles and report the
+ * Run a frozen benchmark across several learning cycles and report the
  * per-dimension and aggregate delta from baseline (cycle 0) to latest.
+ *
+ * BENCHMARK_FIXTURE selects the fixture: "default" (tx civic), "nws" (the
+ * live-alerts domain earning its evidence), or a path to a fixture file.
  */
 async function main(): Promise<void> {
   const cycles = Number(process.env.BENCHMARK_CYCLES ?? 3);
+  const fixtureKey = process.env.BENCHMARK_FIXTURE ?? 'default';
+  const fixturePath =
+    fixtureKey in NAMED_FIXTURES ? NAMED_FIXTURES[fixtureKey] : fixtureKey;
   const dataDir = join(
     process.env.WRITING_ENGINE_DATA_DIR ?? './data',
-    'benchmark',
+    fixtureKey === 'default'
+      ? 'benchmark'
+      : `benchmark-${basename(fixtureKey)}`,
   );
   resetDir(dataDir); // baseline must start from an empty playbook
 
   const { deps } = createEngine({ dataDir });
-  const report = await runBenchmark(deps, cycles);
+  const fixture = fixturePath ? loadBenchmark(fixturePath) : loadBenchmark();
+  const report = await runBenchmark(deps, cycles, fixture);
 
   banner(`Benchmark: ${report.name} v${report.version}`);
   console.log(
@@ -59,6 +77,11 @@ function printDelta(title: string, delta: Delta): void {
 
 function banner(text: string): void {
   console.log(`\n${'='.repeat(72)}\n${text}\n${'='.repeat(72)}`);
+}
+
+/** Filesystem-safe suffix for the data dir when a custom fixture is used. */
+function basename(key: string): string {
+  return (key.split('/').at(-1) ?? key).replace(/[^a-zA-Z0-9_-]/g, '_');
 }
 
 function fmt(value: number | null): string {

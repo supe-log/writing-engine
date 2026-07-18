@@ -21,11 +21,10 @@ import { DOMAIN_EVIDENCE } from '../fixtures/demoDomainEvidence.js';
  *
  * Gate-domain selection (env):
  *   GATE_DOMAIN — which DomainEvidence the run is gated by. Defaults to
- *   nws-alerts-tx in live mode (AMBER: the agent observes but refuses to
- *   write until the domain earns a benchmark) and tx-civic-memo otherwise
- *   (YELLOW: write-cycles permitted). Setting GATE_DOMAIN=tx-civic-memo on a
- *   live run is the explicit operator override that treats live alerts as
- *   in-boundary.
+ *   nws-alerts-tx in live mode and tx-civic-memo otherwise; both have earned
+ *   YELLOW (write-cycles permitted) via their frozen benchmarks. To see the
+ *   gate REFUSE, run GATE_DOMAIN=nws-alerts-tx@pre-benchmark — the domain's
+ *   before-state (AMBER: observe and snapshot, never write).
  *
  * Model selection (env):
  *   MODEL_ADAPTER=heuristic (default) — deterministic demo writer/evaluator.

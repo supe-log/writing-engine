@@ -3,6 +3,7 @@ import { LayeredEvidenceGateEvaluator } from '../src/adapters/evidenceGate/Layer
 import { fixedClock } from '../src/core/clock.js';
 import {
   nwsAlertsDomainEvidence,
+  nwsAlertsPreBenchmarkEvidence,
   txCivicMemoEvidence,
 } from '../src/fixtures/demoDomainEvidence.js';
 import { PERMISSION_RANK, permits } from '../src/domain/evidenceGate.js';
@@ -16,11 +17,17 @@ describe('demo domain evidence', () => {
     expect(record.maxPermission).toBe('prototype');
   });
 
-  it('nws-alerts-tx is AMBER / investigate until labels exist', () => {
-    const record = gate.evaluate(nwsAlertsDomainEvidence);
+  it('the pre-benchmark live domain was AMBER / investigate', () => {
+    const record = gate.evaluate(nwsAlertsPreBenchmarkEvidence);
     expect(record.status).toBe('AMBER');
     expect(record.maxPermission).toBe('investigate');
     expect(record.report.missingEvidence.join(' ')).toMatch(/labels/);
+  });
+
+  it('nws-alerts-tx earned YELLOW / prototype via its frozen benchmark', () => {
+    const record = gate.evaluate(nwsAlertsDomainEvidence);
+    expect(record.status).toBe('YELLOW');
+    expect(record.maxPermission).toBe('prototype');
   });
 });
 

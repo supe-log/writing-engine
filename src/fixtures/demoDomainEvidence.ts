@@ -135,9 +135,7 @@ export const txCivicMemoEvidence: DomainEvidence = {
     genres: ['decision-memo'],
     traitScores: {},
   },
-  declaredUnsupportedRegions: [
-    'live feed domains not yet benchmarked (e.g. nws-alerts-tx)',
-  ],
+  declaredUnsupportedRegions: ['live feed domains without a frozen benchmark'],
   discoveredSources: [
     {
       name: 'tx-demo-civic-feed fixture',
@@ -151,16 +149,18 @@ export const txCivicMemoEvidence: DomainEvidence = {
 };
 
 /**
- * The live NWS-alerts domain: the heartbeat can OBSERVE it (poll + snapshot),
- * but no benchmark family, labels, or baseline exist for memo-writing over
- * live alerts yet.
+ * The live NWS-alerts domain AS IT WAS before it earned a benchmark: the
+ * heartbeat could OBSERVE it (poll + snapshot) but had no prompt families,
+ * labels, or baseline for memo-writing over live alerts.
  *
- * Expected gate outcome: AMBER — permission to investigate only. The
- * heartbeat will watch the feed and refuse to write until the domain earns a
- * benchmark. GATE_DOMAIN=tx-civic-memo is the explicit operator override.
+ * Gate outcome: AMBER — permission to investigate only. Preserved (a) as the
+ * refusal demo (GATE_DOMAIN=nws-alerts-tx@pre-benchmark) and (b) as the
+ * before-state of the arc the current evidence completes: the domain EARNED
+ * its way to YELLOW by getting a frozen benchmark
+ * (src/benchmark/fixtures/nws-benchmark.json, BENCHMARK_FIXTURE=nws).
  */
-export const nwsAlertsDomainEvidence: DomainEvidence = {
-  domainId: 'nws-alerts-tx',
+export const nwsAlertsPreBenchmarkEvidence: DomainEvidence = {
+  domainId: 'nws-alerts-tx@pre-benchmark',
   construct: {
     skill: 'source-grounded decision-memo writing over live NWS alerts',
     population: 'writing-engine live agent',
@@ -273,8 +273,79 @@ export const nwsAlertsDomainEvidence: DomainEvidence = {
   ],
 };
 
+/**
+ * The live NWS-alerts domain with its EARNED evidence: the frozen 3-family
+ * benchmark (src/benchmark/fixtures/nws-benchmark.json; flood episode held
+ * out) run via BENCHMARK_FIXTURE=nws gives it labels, a lesson-free baseline
+ * (aggregate 0.571 -> 1.000 measured), leakage-safe family splits, and
+ * deterministic repeat stability — the same honest interpretations as
+ * txCivicMemoEvidence, documented there.
+ *
+ * Expected gate outcome: YELLOW — permission to prototype. Live runs write by
+ * default now; the pre-benchmark AMBER state above shows the before-state.
+ */
+export const nwsAlertsDomainEvidence: DomainEvidence = {
+  ...structuredClone(nwsAlertsPreBenchmarkEvidence),
+  domainId: 'nws-alerts-tx',
+  groundTruth: {
+    inHand: true,
+    humanOrOfficial: true, // human-authored deterministic procedure (rubric@1)
+    attributed: true,
+    leakageFree: true,
+    pairedWithSources: true,
+    recordsComplete: true,
+    disagreementInfoAvailable: false,
+    labelSource:
+      'deterministic rubric@1 verdicts over the frozen NWS benchmark fixture v1',
+  },
+  coverage: {
+    promptFamilyCount: 3, // heat, storm, flood alert episodes
+    supportedScorePoints: [
+      'sourceFidelity',
+      'insight',
+      'audienceUsefulness',
+      'structure',
+      'style',
+      'freshness',
+      'safety',
+    ],
+    // 3 tasks x 3 cycles per benchmark run exercise every dimension.
+    labeledCountPerScorePoint: {
+      sourceFidelity: 9,
+      insight: 9,
+      audienceUsefulness: 9,
+      structure: 9,
+      style: 9,
+      freshness: 9,
+      safety: 9,
+    },
+    invalidCaseTypesCovered: ['prompt-injection', 'staleness'],
+    extractionQualityKnown: true,
+    minLabeledPerReportedCell: 3, // honest: below the pilot default of 8
+  },
+  evaluation: {
+    holdoutPossible: true,
+    leakageSafeSplitsAtFamilyLevel: true,
+    untouchedFamilyCount: 1, // the held-out flood episode
+    metricsPreregistered: true,
+    baselinesDefined: true, // measured: 0.571 lesson-free baseline
+    exactTraitScoreStabilityRate: 1.0, // deterministic evaluator
+    repeatDisagreementPolicy: 'abstain',
+    perCellSamplesSufficient: false,
+    scorePointsWithZeroRecall: [],
+    blindExpertReviewDone: false,
+  },
+  value: {
+    improvesOnAlternative: true,
+    feedbackValidityChecked: true, // lessons validated against later wins
+    costJustified: true,
+  },
+  declaredUnsupportedRegions: ['live feed domains without a frozen benchmark'],
+};
+
 /** Registry for CLI selection via GATE_DOMAIN. */
 export const DOMAIN_EVIDENCE: Record<string, DomainEvidence> = {
   [txCivicMemoEvidence.domainId]: txCivicMemoEvidence,
   [nwsAlertsDomainEvidence.domainId]: nwsAlertsDomainEvidence,
+  [nwsAlertsPreBenchmarkEvidence.domainId]: nwsAlertsPreBenchmarkEvidence,
 };

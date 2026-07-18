@@ -1,0 +1,96 @@
+{
+  "name": "nws-alerts-benchmark",
+  "version": 1,
+  "frozen": true,
+  "description": "Frozen benchmark for the live NWS-alerts memo domain (nws-alerts-tx). Three alert-episode prompt families share the feed scope; the flood episode is HELD OUT so its improvement can only come from lessons learned on the heat and storm episodes. Events are synthetic but shaped exactly like NwsAlertsSource output (the storm episode's metrics mirror a real 2026-07-18 poll: 22 active TX alerts, 21 severe). Do not edit after a baseline is recorded; bump `version` and re-baseline instead.",
+  "scope": "nws-alerts-tx",
+  "tasks": [
+    {
+      "id": "bench-nws-heat",
+      "heldOut": false,
+      "task": {
+        "id": "bench-nws-heat",
+        "audience": "Texas emergency operations duty officer",
+        "format": "decision-memo",
+        "minWords": 40,
+        "maxWords": 400,
+        "minCitations": 1
+      },
+      "event": {
+        "id": "nws-alerts-tx-active",
+        "feed": "nws-alerts-tx",
+        "url": "https://api.weather.gov/alerts/active?area=TX&bench=heat",
+        "title": "Benchmark: heat episode — 14 active alerts (2 extreme)",
+        "body": "Excessive Heat Warning: dangerous heat through Friday evening (South Central Texas)\nHeat Advisory: heat index values to 108 (North Texas)",
+        "publishedAt": "2026-07-18T09:00:00.000Z",
+        "metrics": {
+          "alertsActive": 14,
+          "severityExtreme": 2,
+          "severitySevere": 5,
+          "severityModerate": 6,
+          "severityMinor": 1,
+          "severityUnknown": 0,
+          "distinctEventTypes": 3
+        }
+      }
+    },
+    {
+      "id": "bench-nws-storm",
+      "heldOut": false,
+      "task": {
+        "id": "bench-nws-storm",
+        "audience": "Texas emergency operations duty officer",
+        "format": "decision-memo",
+        "minWords": 40,
+        "maxWords": 400,
+        "minCitations": 1
+      },
+      "event": {
+        "id": "nws-alerts-tx-active",
+        "feed": "nws-alerts-tx",
+        "url": "https://api.weather.gov/alerts/active?area=TX&bench=storm",
+        "title": "Benchmark: storm episode — 22 active alerts (21 severe)",
+        "body": "Severe Thunderstorm Warning: 60 mph gusts and quarter-size hail (Bexar County)\nSevere Thunderstorm Watch: through 2 AM CDT (Hill Country)",
+        "publishedAt": "2026-07-18T10:00:00.000Z",
+        "metrics": {
+          "alertsActive": 22,
+          "severityExtreme": 0,
+          "severitySevere": 21,
+          "severityModerate": 1,
+          "severityMinor": 0,
+          "severityUnknown": 0,
+          "distinctEventTypes": 3
+        }
+      }
+    },
+    {
+      "id": "bench-nws-flood-heldout",
+      "heldOut": true,
+      "task": {
+        "id": "bench-nws-flood-heldout",
+        "audience": "County flood-plain operations lead",
+        "format": "decision-memo",
+        "minWords": 40,
+        "maxWords": 400,
+        "minCitations": 1
+      },
+      "event": {
+        "id": "nws-alerts-tx-active",
+        "feed": "nws-alerts-tx",
+        "url": "https://api.weather.gov/alerts/active?area=TX&bench=flood",
+        "title": "Benchmark (held out): flood episode — 9 active alerts (7 severe)",
+        "body": "Flash Flood Warning: life-threatening flooding along the Guadalupe (Kerr County)\nFlood Advisory: minor flooding of low-lying areas (Travis County)",
+        "publishedAt": "2026-07-18T11:00:00.000Z",
+        "metrics": {
+          "alertsActive": 9,
+          "severityExtreme": 0,
+          "severitySevere": 7,
+          "severityModerate": 2,
+          "severityMinor": 0,
+          "severityUnknown": 0,
+          "distinctEventTypes": 2
+        }
+      }
+    }
+  ]
+}
