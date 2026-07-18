@@ -72,9 +72,7 @@ describe('heartbeat security boundary', () => {
 });
 
 describe('HiddenLayerScanner', () => {
-  function stubHl(
-    detections: Array<Record<string, string>>,
-  ): FetchLike & {
+  function stubHl(detections: Array<Record<string, string>>): FetchLike & {
     calls: Array<{ url: string; init: Record<string, unknown> }>;
   } {
     const calls: Array<{ url: string; init: Record<string, unknown> }> = [];
