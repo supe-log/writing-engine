@@ -1,0 +1,29 @@
+docs/bounties/nemotron.md
+  s_852ea5c5b4c4ca::t_7b591907b26714 41-60
+.claude/skills/assessment-loop/templates/prepare_data.py
+  s_d08dd72b7d946e::t_227f9f0a8ccc2d 1-109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "64e296579fc7aab32e8da6e00a370d9f01334413",
+  "prompts": {},
+  "sessions": {
+    "s_852ea5c5b4c4ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8172ac63-781d-4a46-9302-9721c9739179",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    },
+    "s_d08dd72b7d946e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2c207ab5-d663-4903-8953-a5a193b30028",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
