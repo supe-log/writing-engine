@@ -24,7 +24,21 @@ async function main(): Promise<void> {
   );
 
   const { heartbeat } = createEngine({ dataDir });
-  const results = await heartbeat.run({ task: DEMO_TASK, ticks: 3 });
+  const run = await heartbeat.run({ task: DEMO_TASK, ticks: 3 });
+  const results = run.cycles;
+
+  console.log(
+    `[gate] ${run.decision.domainId}: ${run.decision.status} — max permission ` +
+      `${run.decision.maxPermission} (required: prototype) -> ` +
+      `${run.permitted ? 'write-cycle permitted' : 'WRITE REFUSED'}\n`,
+  );
+  if (!run.permitted) {
+    console.log('Missing evidence:');
+    for (const missing of run.decision.report.missingEvidence) {
+      console.log(`  - ${missing}`);
+    }
+    console.log(`Next experiment: ${run.decision.nextExperiment}`);
+  }
 
   for (const result of results) {
     printCycle(result);

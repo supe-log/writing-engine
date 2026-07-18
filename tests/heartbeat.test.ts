@@ -19,7 +19,8 @@ afterEach(() => {
 describe('Heartbeat end-to-end', () => {
   it('improves from a lesson-free baseline to a higher latest score', async () => {
     const { heartbeat } = createEngine({ dataDir: dir });
-    const results = await heartbeat.run({ task: DEMO_TASK, ticks: 3 });
+    const run = await heartbeat.run({ task: DEMO_TASK, ticks: 3 });
+    const results = run.cycles;
 
     expect(results).toHaveLength(3);
     const delta = computeDelta(results.map((r) => r.evaluation));

@@ -42,6 +42,22 @@ export const STATUS_MAX_PERMISSION: Record<EvidenceGateStatus, PermissionTier> =
     GREEN: 'autonomous',
   };
 
+/** Tier ordering for runtime enforcement (spec §1: each tier contains the previous). */
+export const PERMISSION_RANK: Record<PermissionTier, number> = {
+  investigate: 0,
+  prototype: 1,
+  pilot: 2,
+  autonomous: 3,
+};
+
+/** True when the granted tier covers the required tier. */
+export function permits(
+  granted: PermissionTier,
+  required: PermissionTier,
+): boolean {
+  return PERMISSION_RANK[granted] >= PERMISSION_RANK[required];
+}
+
 /** Default tier minimums (spec §5): hackathon-scale defaults, not constants of nature. */
 export const MIN_PROMPT_FAMILIES_FOR_PROTOTYPE = 3;
 export const MIN_UNTOUCHED_FAMILIES_FOR_PROTOTYPE = 1;

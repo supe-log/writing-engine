@@ -9,6 +9,7 @@ import type {
   RunRecord,
   SourceSnapshot,
 } from '../../domain/types.js';
+import type { DecisionRecord } from '../../domain/evidenceGate.js';
 
 /**
  * Filesystem JSON implementation of {@link Store}.
@@ -29,6 +30,7 @@ interface StoreDirs {
   evaluations: string;
   runs: string;
   lessons: string;
+  decisions: string;
 }
 
 export class FileSystemStore implements Store {
@@ -42,6 +44,7 @@ export class FileSystemStore implements Store {
       evaluations: join(baseDir, 'evaluations'),
       runs: join(baseDir, 'runs'),
       lessons: join(baseDir, 'lessons'),
+      decisions: join(baseDir, 'decisions'),
     };
     for (const dir of Object.values(this.dirs)) {
       mkdirSync(dir, { recursive: true });
@@ -101,6 +104,24 @@ export class FileSystemStore implements Store {
 
   allLessons(): Promise<Lesson[]> {
     return Promise.resolve(this.readAll<Lesson>(this.dirs.lessons));
+  }
+
+  saveDecision(record: DecisionRecord): Promise<void> {
+    // Keyed by domain + evaluation time: the audit trail accumulates rather
+    // than overwriting earlier decisions for the same domain.
+    this.writeRecord(
+      this.dirs.decisions,
+      `${record.domainId}-${record.evaluatedAt}`,
+      record,
+    );
+    return Promise.resolve();
+  }
+
+  listDecisions(): Promise<DecisionRecord[]> {
+    const decisions = this.readAll<DecisionRecord>(this.dirs.decisions).sort(
+      (a, b) => a.evaluatedAt.localeCompare(b.evaluatedAt),
+    );
+    return Promise.resolve(decisions);
   }
 
   private writeRecord(dir: string, id: string, record: unknown): void {

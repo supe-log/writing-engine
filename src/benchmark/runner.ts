@@ -56,6 +56,10 @@ export function loadBenchmark(
  * All tasks share one memory scope, so a lesson learned on one task is applied
  * to the others. Held-out tasks never contribute lessons (learn=false); their
  * improvement isolates generalization from overfitting.
+ *
+ * The benchmark deliberately bypasses the heartbeat's evidence gate: it is the
+ * instrument that PRODUCES the evidence a domain uses to earn its permission
+ * tier — gating the instrument would deadlock domain onboarding.
  */
 export async function runBenchmark(
   deps: HeartbeatDeps,

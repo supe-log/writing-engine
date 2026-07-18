@@ -131,4 +131,9 @@ export interface Store {
   /** Retrieve lessons applicable to a scope (feed/domain tag). */
   lessonsForScope(scope: string): Promise<Lesson[]>;
   allLessons(): Promise<Lesson[]>;
+
+  /** Persist an evidence-gate decision (the audit trail accumulates). */
+  saveDecision(record: DecisionRecord): Promise<void>;
+  /** All gate decisions, sorted by evaluation time. */
+  listDecisions(): Promise<DecisionRecord[]>;
 }
