@@ -1,0 +1,19 @@
+README.md
+  s_d08dd72b7d946e::t_04559deeced3ee 93-131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "3d5279ec2dac8cda430bfa28cc510cd4d5d6ff18",
+  "prompts": {},
+  "sessions": {
+    "s_d08dd72b7d946e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2c207ab5-d663-4903-8953-a5a193b30028",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
