@@ -167,6 +167,7 @@ docs/          architecture, provenance, limitations, ADRs, submission checklist
 
 - [CONTEXT.md](CONTEXT.md) — resolved domain glossary
 - [docs/architecture.md](docs/architecture.md) — design, seams, diagram, ports
+- [docs/evidence-gates.md](docs/evidence-gates.md) — evidence gates: how the system decides, after source discovery, whether a writing-assessment domain is worth pursuing and at what permission level
 - [docs/dataset-provenance.md](docs/dataset-provenance.md) — data sources & licensing
 - [docs/known-limitations.md](docs/known-limitations.md) — limitations & next steps
 - [docs/submission-checklist.md](docs/submission-checklist.md) — hackathon submission checklist

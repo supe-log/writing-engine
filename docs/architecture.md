@@ -144,5 +144,19 @@ integrations**:
   YAML policy that permits fixture/data-dir access but blocks unapproved network
   egress and protected paths, enforcing the human publishing gate at the boundary.
 
+## Deciding whether a domain is worth pursuing
+
+Before a new writing-grade or assessment domain is wired into this pipeline, it
+has to clear the **evidence gates** — a layered check on construct clarity,
+authority/provenance, ground truth, coverage, evaluation feasibility, operational
+safety, and outcome value. The gates also decide _which permission tier_ a domain
+qualifies for (investigate, prototype, run a controlled pilot, or operate
+autonomously) — a public scrape alone grants only the first. This is a decision
+policy, not an orchestration stage, and it maps cleanly onto a future
+`EvidenceGateEvaluator` port that emits a machine-readable decision record. See
+[evidence-gates.md](evidence-gates.md) for the full specification, the
+RED/AMBER/YELLOW/BLUE/GREEN outcomes, the decision algorithm, and a worked STAAR
+example.
+
 See [adr/0001-filesystem-persistence-and-ports.md](adr/0001-filesystem-persistence-and-ports.md)
 for the rationale behind the ports-first, filesystem-first approach.

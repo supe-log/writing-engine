@@ -39,6 +39,10 @@ deliberate scaffold boundaries, each paired with the seam that closes it.
 4. Implement the **Supabase** `Store`.
 5. Add the **HiddenLayer** scan step at the documented boundaries.
 6. Wrap the runtime in **NemoClaw/OpenShell** with an egress policy.
+7. Gate any **new writing-assessment domain** through the
+   [evidence-gates.md](evidence-gates.md) checks before wiring it in — they decide
+   whether the domain is worth pursuing and at what permission tier (investigate,
+   prototype, pilot, or autonomous).
 
 ## Non-negotiable
 
