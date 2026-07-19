@@ -1,0 +1,23 @@
+docs/backtest-staar-ecr.md
+  s_852ea5c5b4c4ca::t_d34dde9fd0bacc 1-96
+src/adapters/writer/ModelWriter.ts
+  s_852ea5c5b4c4ca::t_1fcc5dfd4a2772 90-95
+tests/modelAdapters.test.ts
+  s_852ea5c5b4c4ca::t_d15e457684ea83 166-168
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "4d5db91808c62ef92f842a965f04f3c0a9a49f6b",
+  "prompts": {},
+  "sessions": {
+    "s_852ea5c5b4c4ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8172ac63-781d-4a46-9302-9721c9739179",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
