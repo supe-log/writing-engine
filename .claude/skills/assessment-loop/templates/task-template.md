@@ -69,16 +69,22 @@ The harness runs your engine with a timeout.
 
 ## Proven moves (measured in reference runs — reach for these before inventing)
 
-- **Narrow boundary adjudicator.** When errors cluster at ONE adjacent score
-  boundary, add a dedicated second model call that fires ONLY when the judge
-  outputs the specific boundary score, adjudicates that single boundary with
-  criteria distilled from the raters' written rationales, answers status-quo
-  when torn, and keeps the judge's score on any error. Measure first WHERE
-  the misses sit (in the reference runs, 15/15 missed gold-zeros sat at
-  judge-score 1). This pattern took lowest-class recall 3/42 → 29/42 across
-  three splits and fixed top-compression the same way at the 2/3 boundary. A
-  BROAD gate (firing on several scores, overriding both directions) overfit
-  train and was discarded — keep the trigger narrow and one-directional.
+- **Narrow boundary adjudicator — for STRUCTURAL boundaries only.** When
+  errors cluster at ONE adjacent score boundary, add a dedicated second model
+  call that fires ONLY when the judge outputs the specific boundary score,
+  adjudicates that single boundary with criteria distilled from the raters'
+  written rationales, answers status-quo when torn, and keeps the judge's
+  score on any error. Measure first WHERE the misses sit (in the reference
+  runs, 15/15 missed gold-zeros sat at judge-score 1). At the lowest-class
+  0/1 boundary — where the criteria are CATEGORICAL (no own claim, summary-
+  instead-of-response, copied-never-developed) — this took recall 3/42 →
+  29/42 across three splits. MEASURED FAILURE: the same pattern at the 2/3
+  QUALITY boundary ("sufficiently explained"...) looked precision-perfect on
+  the tuning year, then promoted 6/8 WRONG on a fresh family — graded-quality
+  judgments inherit the judge's own fuzziness, so the adjudicator adds
+  nothing there. A BROAD gate (firing on several scores, overriding both
+  directions) also overfit and was discarded. Keep triggers narrow,
+  one-directional, and structural.
 - **Judge mix.** Different models have complementary trait strengths; score
   each trait with the model measured best for it before reaching for a
   stronger (or reasoning) model — "smarter judge" was falsified twice.
