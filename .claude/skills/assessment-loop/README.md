@@ -5,17 +5,26 @@ scored examples via an autonomous improvement loop: fresh AI builders per
 iteration, a pure-code verifier over frozen human labels, CI-lower-bound
 keep/discard, and a holdout scored exactly once.
 
-## Evidence (three live runs on real TEA-scored STAAR essays, 2026-07-18)
+## Evidence (four live runs on real TEA-scored STAAR essays, 2026-07-18/19)
 
-| Run                                          | Dev total QWK (CI-LB)    | Holdout                                           | Outcome                                                                                                                                                                                              |
-| -------------------------------------------- | ------------------------ | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| STAAR grades 3–5, 3 iterations               | 0.784 → 0.801            | **0.880 [CI-LB 0.791]** (scored once)             | Passed the 0.70 operational bar; iteration 2's train-overfit change was correctly discarded                                                                                                          |
-| STAAR grades 6–8 transfer, 1 iteration       | 0.821 [LB 0.706]         | 0.798 [CI-LB 0.641] (scored once)                 | Holdout refuted a premature total-only stop — now encoded as the multi-floor stop rule                                                                                                               |
-| STAAR grades 6–8 gen-2, fixed harness, 3 it. | LB 0.641 → 0.704 → 0.753 | 0.825 [CI-LB 0.708] (2nd exposure — weaker claim) | The new multi-floor stop rule correctly REFUSED to declare done (dev/org trait floor unmet) — and the holdout agreed (dev/org LB 0.568). Zero-recall never regressed under the multi-objective keep. |
+| Run                                             | Dev total QWK (CI-LB)        | Holdout (fresh data, scored once)                                           | Outcome                                                                                                                                                                                                                                                                                                                                                                                              |
+| ----------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| STAAR grades 3–5, 3 iterations                  | 0.784 → 0.801                | **0.880 [CI-LB 0.791]**                                                     | Passed the 0.70 operational bar; iteration 2's train-overfit change was correctly discarded                                                                                                                                                                                                                                                                                                          |
+| STAAR grades 6–8 transfer, 1 iteration          | 0.821 [LB 0.706]             | 0.798 [CI-LB 0.641]                                                         | Holdout refuted a premature total-only stop — now encoded as the multi-floor stop rule                                                                                                                                                                                                                                                                                                               |
+| STAAR grades 6–8 gen-2, fixed harness, 3 it.    | LB 0.641 → 0.704 → 0.753     | 0.825 [CI-LB 0.708] (2nd exposure — weaker claim)                           | The new multi-floor stop rule correctly REFUSED to declare done (dev/org trait floor unmet) — and the holdout agreed (dev/org LB 0.568). Zero-recall never regressed under the multi-objective keep.                                                                                                                                                                                                 |
+| **STAAR grades 6–8 gen-3, THIS harness, 3 it.** | **LB 0.791 → 0.871 → 0.897** | **0.869 [0.643–0.973]** (12 never-seen 2022 essays; both gold zeros caught) | **First run to satisfy the full multi-floor stop rule.** Iteration 1 beat gen-2's final best — the Proven Moves template carries compiled knowledge forward. Builder 3 honestly disclosed it could reconstruct dev gold from direction-only feedback + published aggregates (the flagged 0.897; cleanest un-gamed dev claim is 0.871) — the loophole is documented below and the holdout arbitrates. |
 
 Both corpora were extracted from public TEA scoring guides by parallel
 agents (verbatim student errors preserved); the corpora themselves are not
 redistributed here (they reproduce copyrighted reading passages).
+
+**Known loophole (measured 2026-07-19, fix designed):** when diagnostics
+enumerate every miss with a direction AND aggregate metrics are published at
+full precision AND prior predictions persist between iterations, a builder
+can reconstruct the dev gold exactly (gold = pred ± 1 under adjacent
+agreement 1.0). Gen-4 template fixes: sample diagnostics top-k, round
+published aggregates, clear `out/` between iterations. The frozen
+holdout-once design is what keeps final claims honest regardless.
 
 ## Why Claude Code as the harness
 

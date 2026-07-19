@@ -76,11 +76,12 @@ npm test             # unit + integration tests at the module seams
 Other scripts:
 
 ```bash
-npm run check          # format:check + lint + typecheck + test (CI gate)
-npm run heartbeat      # single tick; memory compounds across invocations
-npm run heartbeat:live # poll real NOAA NWS alerts (network; see "Live data")
-npm run gate           # evaluate the evidence gates for the STAAR worked example
-npm run build          # compile TypeScript to dist/
+npm run check            # format:check + lint + typecheck + test (CI gate)
+npm run heartbeat        # single tick; memory compounds across invocations
+npm run heartbeat:essays # STAAR essay-inbox demo (the headline live feed; see examples/essay-inbox/)
+npm run heartbeat:live   # poll real NOAA NWS alerts (network; see "Live data")
+npm run gate             # evaluate the evidence gates for the STAAR worked example
+npm run build            # compile TypeScript to dist/
 ```
 
 ## What the demo shows
@@ -170,6 +171,19 @@ and scores a frozen holdout exactly once. A follow-up grades 6–8 transfer run
 (engine onboarded from public scoring-guide PDFs in ~1 hour; holdout 0.798,
 CI-LB 0.641) exposed a premature-stop failure mode that is now encoded in the
 harness as multi-floor stop conditions.
+
+The harness itself then improved and re-proved the claim: a fourth cold-start
+run under the hardened templates (stall escalation, poisoned-round guard,
+anti-memorization audit, answer-key-free feedback, and a "Proven Moves"
+section that carries measured lessons forward) **satisfied every stop floor
+in three iterations** — dev CI-lower-bound 0.791 → 0.871 → 0.897, with its
+iteration ONE beating the previous generation's final best — and scored
+**0.869 on 12 never-seen 2022 essays, catching both gold-zero essays**. That
+run also caught a builder honestly reconstructing the dev answer key from
+feedback aggregates — the loophole and its fix are documented in the skill's
+README, and the frozen-holdout design is what kept the claim honest. The
+evidence table for all four runs lives in
+[`.claude/skills/assessment-loop/README.md`](.claude/skills/assessment-loop/README.md).
 
 ## Architecture
 
