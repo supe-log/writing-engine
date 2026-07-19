@@ -42,7 +42,11 @@ portable regardless of harness.
 - Below ~40 examples per split, QWK CI half-widths exceed ~0.1 — gate
   decisions are provisional (the tool warns).
 - The lowest score class is the least transferable skill in every measured
-  run; it likely needs a dedicated component, not more prompting.
+  run. VALIDATED FIX (2026-07-18): a dedicated narrow boundary adjudicator —
+  a second call that fires only at the judge's boundary score — took
+  lowest-class recall from 3/42 to 29/42 attempts across three STAAR splits
+  (including 6/6 with no false fires on a fully fresh 2022 family). The
+  pattern is documented in `templates/task-template.md` under "Proven moves".
 - The secret-dir lock is a tripwire, not a sandbox — containerize builders
   for adversarial settings.
 - Each holdout is single-use per engine lineage.

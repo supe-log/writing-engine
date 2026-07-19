@@ -66,3 +66,21 @@ The harness runs your engine with a timeout.
    before ending — never hand the harness a crashing engine.
 4. Update the journal, end your turn. The harness scores dev and keeps or
    reverts your change.
+
+## Proven moves (measured in reference runs — reach for these before inventing)
+
+- **Narrow boundary adjudicator.** When errors cluster at ONE adjacent score
+  boundary, add a dedicated second model call that fires ONLY when the judge
+  outputs the specific boundary score, adjudicates that single boundary with
+  criteria distilled from the raters' written rationales, answers status-quo
+  when torn, and keeps the judge's score on any error. Measure first WHERE
+  the misses sit (in the reference runs, 15/15 missed gold-zeros sat at
+  judge-score 1). This pattern took lowest-class recall 3/42 → 29/42 across
+  three splits and fixed top-compression the same way at the 2/3 boundary. A
+  BROAD gate (firing on several scores, overriding both directions) overfit
+  train and was discarded — keep the trigger narrow and one-directional.
+- **Judge mix.** Different models have complementary trait strengths; score
+  each trait with the model measured best for it before reaching for a
+  stronger (or reasoning) model — "smarter judge" was falsified twice.
+- **Median-of-k self-consistency** on the noisiest trait: cheap variance
+  reduction, nothing tunable, kept in every reference run it appeared in.
