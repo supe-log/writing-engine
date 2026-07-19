@@ -1,0 +1,21 @@
+docs/organizer/00-Source-of-Truth.md
+  s_52895f81214176::t_220a581a15f69a 276-278
+docs/organizer/01-Resources.md
+  s_52895f81214176::t_3dac159de7dbad 56-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "529d74ab49d503e33f5f5e7c9e3561b609a6ca74",
+  "prompts": {},
+  "sessions": {
+    "s_52895f81214176": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "51f5259b-4b06-4bff-9411-a140492f8a22",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
