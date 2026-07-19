@@ -53,9 +53,9 @@ Only add sponsor technology where it performs real work in the core loop. The ju
 | Network | Password |
 |---|---|
 | Antler | No password |
-| The Pack | `thepack@antl3r` |
-| Verizon_B67ZL4 | `huron2shone3hie` |
-| Verizon_3LRMH4 | `even2deign5mit` |
+| The Pack | `[redacted]` |
+| Verizon_B67ZL4 | `[redacted]` |
+| Verizon_3LRMH4 | `[redacted]` |
 
 ### Bathrooms
 

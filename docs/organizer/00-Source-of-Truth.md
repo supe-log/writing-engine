@@ -273,9 +273,9 @@ Done right it looks like an agent with live credentials and real access (a repo,
 | Network Name | Password |
 |---|---|
 | Antler | no password required |
-| The Pack | thepack@antl3r |
-| Verizon_B67ZL4 | huron2shone3hie |
-| Verizon_3LRMH4 | even2deign5mit |
+| The Pack | [redacted] |
+| Verizon_B67ZL4 | [redacted] |
+| Verizon_3LRMH4 | [redacted] |
 
 ## Bathrooms
 
