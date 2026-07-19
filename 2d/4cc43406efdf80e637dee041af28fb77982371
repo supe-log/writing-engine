@@ -1,0 +1,34 @@
+.claude/skills/assessment-loop/templates/task-template.md
+  s_52895f81214176::t_3ab27900f2483c 70-92
+.claude/skills/assessment-loop/templates/loop.sh
+  s_52895f81214176::t_b77f709e222bb2 134-135
+  s_52895f81214176::t_5b9a3abe34272f 55-59
+  s_52895f81214176::t_7f749006c15ee4 60
+  s_52895f81214176::t_4b57dac6d3f5bc 137-138
+  s_52895f81214176::t_8e99609a2ec5ba 64-73
+  s_52895f81214176::t_ea2b51440a1f36 139,160,163
+  s_52895f81214176::t_38eea3812913a6 102-106,109-110,113-115,128,142
+  s_52895f81214176::t_80580273d89928 74-84
+  s_52895f81214176::t_20f38d4abd2594 99-101
+  s_52895f81214176::t_95755309e2413d 125-127
+  s_52895f81214176::t_477bfa9dc0a866 136
+  s_52895f81214176::t_e694c45cbceb50 140-141
+  s_52895f81214176::t_f04b38b2c528d0 143
+  s_52895f81214176::t_3bb4d000d0ef38 96-98,124
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "2d4cc43406efdf80e637dee041af28fb77982371",
+  "prompts": {},
+  "sessions": {
+    "s_52895f81214176": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "51f5259b-4b06-4bff-9411-a140492f8a22",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
