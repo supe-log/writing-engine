@@ -1,10 +1,22 @@
-# Writing Engine
+# Writing Engine — a writing **assessment** engine
 
-A heartbeat-driven writing agent that turns live public information into timely,
-source-grounded writing, evaluates its own work against a frozen rubric, keeps
-only the lessons that measurably improve future work, and demonstrates a
-baseline-to-latest improvement across successive runs — without retraining a
-model.
+**It grades writing; it does not ghost-write.** Essays (or any rubric-scored
+writing) come in, and the engine scores them the way a trained human rater
+would — measured against real state-scored STAAR essays — then explains each
+score in evidence-grounded feedback. The "writing" it produces is that
+feedback and its reports, never essays for students.
+
+Three parts, one discipline:
+
+1. **The assessment engine** — scores writing on official rubrics; its
+   agreement with human raters is measured, with confidence intervals, on
+   data it has never seen.
+2. **The engine-builder loop** — an autonomous loop that builds and improves
+   assessment engines from any rubric + scored examples (packaged as the
+   [`/assessment-loop`](.claude/skills/assessment-loop/) skill).
+3. **The heartbeat agent** — runs the engine on live feeds (an essay inbox,
+   real NOAA alerts) with runtime security, and is **refused permission to
+   write anything** until the evidence gates say it has earned it.
 
 - **Primary track:** Recursive Intelligence (measurable self-improvement across runs)
 - **Secondary fit:** Red Hat Live Data (heartbeat consumes an updating feed; freshness changes the output)
@@ -55,12 +67,16 @@ flowchart LR
 
 ## Why it matters
 
-Writing agents repeat the same mistakes because every prompt starts from scratch.
-Writing Engine watches live public data, produces a source-grounded decision
-memo, grades itself against a fixed rubric, and stores only the lessons that
-demonstrably raise the score. In the demo, the same engine goes from a weak
-baseline to a stronger, more useful piece across heartbeat cycles, with every
-source, score, and learned rule visible and inspectable.
+Grading student writing is slow, expensive, and hard to do consistently — and
+most AI graders ask to be trusted without evidence. Writing Engine's rule is
+the opposite: **nothing gets authority it has not measurably earned.** The
+assessment engine is benchmarked against real state-scored essays; the agent
+around it grades its own output against a fixed rubric every run, stores only
+the lessons that demonstrably raise the score, and is refused permission to
+write in any domain where the evidence isn't there yet. In the demo, the same
+engine goes from a weak baseline to a stronger, more useful piece across
+heartbeat cycles, with every source, score, and learned rule visible and
+inspectable.
 
 ## Quick start
 
@@ -83,6 +99,19 @@ npm run heartbeat:live   # poll real NOAA NWS alerts (network; see "Live data")
 npm run gate             # evaluate the evidence gates for the STAAR worked example
 npm run build            # compile TypeScript to dist/
 ```
+
+## Two ways to run the assessment engine
+
+Both paths run the same engine behind the same port interfaces — switching is
+environment variables, not code. That is why everything lives on **one main
+branch**: there is no separate "Nemotron fork" to go stale.
+
+|               | **Champion (recommended)**                                                                                                                                                                                                    | **Nemotron / local**                                                                                                                                                                                                                         |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| What it is    | The measured best configuration: two hosted judges splitting the traits (a gpt-4.1-class model for ideas/organization, gpt-4o for conventions) plus a structural zero-detector for non-scorable responses.                    | The same engine served by NVIDIA Nemotron 3 Nano 30B-A3B — self-hosted on vLLM or via Featherless. The data-sovereignty / cost path, and the base for the custom local judge currently in training.                                          |
+| Measured at   | Agreement with human raters (QWK) **0.869–0.880 on essays it had never seen**, both gold-zero essays caught ([evidence table](.claude/skills/assessment-loop/README.md))                                                      | Writer + independent judge both live; **3.73× throughput** from vLLM continuous batching ([docs/bounties/](docs/bounties/))                                                                                                                  |
+| What you need | Claude Code + an OpenAI API key + your rubric + human-scored examples                                                                                                                                                         | A GPU (e.g. Brev A100) running vLLM — or a Featherless API key — plus the same rubric + examples                                                                                                                                             |
+| How to start  | Invoke the [`/assessment-loop`](.claude/skills/assessment-loop/) skill: it scaffolds the lab, splits your data leakage-safe, and builds your engine with the champion recipe (the "Proven Moves" the measured runs validated) | Set `MODEL_ADAPTER=openai`, `OPENAI_BASE_URL=<your vLLM or Featherless URL>`, `WRITER_MODEL` / `EVALUATOR_MODEL` (see [.env.example](.env.example)); serving guide: [docs/references/vllm-quickstart.md](docs/references/vllm-quickstart.md) |
 
 ## What the demo shows
 
