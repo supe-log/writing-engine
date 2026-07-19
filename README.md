@@ -476,6 +476,43 @@ docs/          architecture, provenance, limitations, ADRs, submission checklist
 - [docs/references/vllm-quickstart.md](docs/references/vllm-quickstart.md) — vLLM serving reference (point-in-time, from slides)
 - [docs/organizer/](docs/organizer/) — preserved organizer source-of-truth and planning docs
 
+## Submission (AITX Community × NVIDIA Claw Agent Hackathon, July 2026)
+
+**Project:** Writing Engine · **Team:** Super Builders — Logan May
+(logan.may@superbuilders.school)
+
+**Tracks:** Recursive Intelligence · Red Hat Live Data · Integrating Runtime
+Security by HiddenLayer
+
+### Write-up (problem → who it helps → solution → impact)
+
+Writing agents repeat the same mistakes forever because every prompt starts
+from scratch — and worse, they'll confidently write about anything, whether
+or not they have the evidence to do it well. This bites anyone deploying
+autonomous writers or graders: ops teams, ed-tech assessment builders, any
+team whose agent must know what it hasn't earned the right to do yet.
+
+**Writing Engine** is a heartbeat-driven agent that watches live public data
+(a student-essay inbox; real NOAA NWS alerts for Texas), writes
+source-grounded feedback and decision memos, grades itself against a frozen
+seven-dimension rubric, and keeps only the lessons that measurably raise its
+scores. On its frozen benchmark fixture it improves from a lesson-free
+baseline of 0.57 to 1.00 — including on a held-out task it never learns
+from, so the improvement is generalization, not overfitting. Lessons persist
+across restarts and compound: our live runs applied six previously-learned
+rules to brand-new data.
+
+The differentiator is the **evidence gate**: a runtime-enforced policy
+(derived from benchmarking a STAAR grades 3–8 essay-scoring engine against
+officially scored TEA responses) that decides how much a domain has
+_earned_ — investigate, prototype, pilot, or autonomous. A domain with no
+benchmark gets watched, snapshotted, and refused: the agent won't write
+until the evidence exists. Untrusted content passes a fail-closed
+HiddenLayer scan at three boundaries; model inference runs behind one
+OpenAI-compatible adapter (vLLM-served Nemotron or hosted); nothing
+publishes without a human. Impact: agents that earn autonomy with measured
+evidence instead of assuming it.
+
 ## License
 
 [MIT](LICENSE) © 2026 supe-log
