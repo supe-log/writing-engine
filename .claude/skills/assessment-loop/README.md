@@ -7,10 +7,10 @@ keep/discard, and a holdout scored exactly once.
 
 ## Evidence (three live runs on real TEA-scored STAAR essays, 2026-07-18)
 
-| Run                                          | Dev total QWK (CI-LB)   | Holdout                     | Outcome                                                                                      |
-| -------------------------------------------- | ----------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |
-| STAAR grades 3–5, 3 iterations               | 0.784 → 0.801           | **0.880 [CI-LB 0.791]** (scored once) | Passed the 0.70 operational bar; iteration 2's train-overfit change was correctly discarded |
-| STAAR grades 6–8 transfer, 1 iteration       | 0.821 [LB 0.706]        | 0.798 [CI-LB 0.641] (scored once)     | Holdout refuted a premature total-only stop — now encoded as the multi-floor stop rule      |
+| Run                                          | Dev total QWK (CI-LB)    | Holdout                                           | Outcome                                                                                                                                                                                              |
+| -------------------------------------------- | ------------------------ | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| STAAR grades 3–5, 3 iterations               | 0.784 → 0.801            | **0.880 [CI-LB 0.791]** (scored once)             | Passed the 0.70 operational bar; iteration 2's train-overfit change was correctly discarded                                                                                                          |
+| STAAR grades 6–8 transfer, 1 iteration       | 0.821 [LB 0.706]         | 0.798 [CI-LB 0.641] (scored once)                 | Holdout refuted a premature total-only stop — now encoded as the multi-floor stop rule                                                                                                               |
 | STAAR grades 6–8 gen-2, fixed harness, 3 it. | LB 0.641 → 0.704 → 0.753 | 0.825 [CI-LB 0.708] (2nd exposure — weaker claim) | The new multi-floor stop rule correctly REFUSED to declare done (dev/org trait floor unmet) — and the holdout agreed (dev/org LB 0.568). Zero-recall never regressed under the multi-objective keep. |
 
 Both corpora were extracted from public TEA scoring guides by parallel
