@@ -1,0 +1,19 @@
+.claude/skills/assessment-loop/templates/task-template.md
+  s_52895f81214176::t_4919fb5406656d 72-87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "325aaf3e622c7157178ceb75dd4e5313a59737af",
+  "prompts": {},
+  "sessions": {
+    "s_52895f81214176": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "51f5259b-4b06-4bff-9411-a140492f8a22",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
