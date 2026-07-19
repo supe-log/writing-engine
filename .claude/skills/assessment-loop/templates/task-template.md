@@ -67,6 +67,29 @@ The harness runs your engine with a timeout.
 4. Update the journal, end your turn. The harness scores dev and keeps or
    reverts your change.
 
+## Discipline (distilled from measured loop failures — ours and others')
+
+- **Be ambitious.** Discards auto-revert, so a bold structural bet that fails
+  costs one iteration; a timid tweak that "succeeds" wastes one. Never spend
+  an iteration on a change too small to move the CI lower bound.
+- **Simplicity criterion.** Weigh complexity cost against improvement size.
+  A tiny gain that adds hacky complexity is not worth proposing; deleting
+  code while holding metrics is a win — bundle simplifications with your
+  improvement so the keep gate can accept them.
+- **Two cases before a change.** An error pattern earns an engine change only
+  when it recurs across at least two different responses. A single miss may
+  be label noise — check the `label_uncertain` diagnostics before building a
+  fix around one essay.
+- **Preserve what works.** Reading only failures is the classic cause of a
+  "right diagnosis, still net-negative" iteration: fixes land while working
+  behavior silently regresses. Before ending, re-check 2-3 train rows your
+  change should NOT have affected.
+- **Retroactive check.** Before writing code, ask: if this fix had already
+  been in place, would the missed responses have scored correctly? If no,
+  the symptom is downstream of a different cause — trace one step back.
+- **Context discipline.** Redirect long command output to files and grep the
+  metric out; never flood your own context with raw logs or full datasets.
+
 ## Proven moves (measured in reference runs — reach for these before inventing)
 
 - **Narrow boundary adjudicator — for STRUCTURAL boundaries only.** When

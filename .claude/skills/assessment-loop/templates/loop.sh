@@ -52,14 +52,36 @@ fi
 BEST="$LAB/.best.json"
 [ -f "$BEST" ] || echo '{"total_lb": -1, "zero_recall": -1}' > "$BEST"
 
-run_dev_eval() { # $1 = label
+# Feature-detect --extra on the verifier once (older eval.py templates lack
+# it); harness metadata is nice-to-have and must never break a scoring run.
+EVAL_HAS_EXTRA=0
+python3 "$LAB/harness/eval.py" --help 2>/dev/null | grep -q -- '--extra' && EVAL_HAS_EXTRA=1
+
+run_dev_eval() { # $1 = label, $2 = optional JSON metadata merged into the log row
   rm -f "$WS/out/predictions.jsonl"
   ( cd "$WS" && with_timeout "$ENGINE_TIMEOUT" bash engine/run.sh data/dev-responses.jsonl out/predictions.jsonl ) \
     > "$RUNS/$1.engine.log" 2>&1 || echo "[$1] engine exited nonzero (scoring whatever it wrote)"
-  python3 "$LAB/harness/eval.py" --config "$CFG" \
-    --pred "$WS/out/predictions.jsonl" --gold "$SECRET/dev-gold.jsonl" \
-    --label "$1" --diagnostics-out "$WS/feedback/latest_diagnostics.json" \
-    --append-log "$WS/experiments.jsonl"
+  # Poisoned-round guard: fewer than half the expected prediction rows means a
+  # BROKEN round (crash/outage), not evidence about the engine idea — do not
+  # score it, so garbage never reaches the journal or the keep gate.
+  local expected got
+  expected=$(wc -l < "$WS/data/dev-responses.jsonl" | tr -d ' ')
+  got=0; [ -f "$WS/out/predictions.jsonl" ] && got=$(wc -l < "$WS/out/predictions.jsonl" | tr -d ' ')
+  if [ "$got" -lt $((expected / 2)) ]; then
+    echo "BROKEN_ROUND rows=$got expected=$expected"
+    return 0
+  fi
+  if [ "$EVAL_HAS_EXTRA" = "1" ] && [ -n "${2:-}" ]; then
+    python3 "$LAB/harness/eval.py" --config "$CFG" \
+      --pred "$WS/out/predictions.jsonl" --gold "$SECRET/dev-gold.jsonl" \
+      --label "$1" --diagnostics-out "$WS/feedback/latest_diagnostics.json" \
+      --append-log "$WS/experiments.jsonl" --extra "$2"
+  else
+    python3 "$LAB/harness/eval.py" --config "$CFG" \
+      --pred "$WS/out/predictions.jsonl" --gold "$SECRET/dev-gold.jsonl" \
+      --label "$1" --diagnostics-out "$WS/feedback/latest_diagnostics.json" \
+      --append-log "$WS/experiments.jsonl"
+  fi
 }
 
 floors_hold() { # $1 = metrics json; exit 0 if every floor holds
@@ -71,11 +93,26 @@ ok = (m['total_lb'] >= $TARGET_LB and traits and m['zero_recall'] >= $ZERO_RECAL
 raise SystemExit(0 if ok else 1)"
 }
 
+# Anti-memorization scan input: the fixed dev id list (opaque salted ids; an
+# engine that hardcodes ANY of them is cheating regardless of opacity).
+python3 -c "
+import json
+[print(json.loads(l)['essay_id']) for l in open('$WS/data/dev-responses.jsonl')]" > "$LAB/.dev-ids" 2>/dev/null || true
+
+# Stall counter: consecutive discards. After 2+, the next builder is told to
+# change the CATEGORY of its approach — the measured failure mode of stuck
+# loops is polite no-op variations on the same falsified idea.
+STALL=0
+
 for i in $(seq 1 "$MAX_ITERS"); do
   iter=$(printf 'iter-%02d' "$i")
-  echo "=== $iter (best kept: $(cat "$BEST")) ==="
+  ITER_T0=$(date +%s)
+  echo "=== $iter (best kept: $(cat "$BEST"); stall=$STALL) ==="
 
   prompt="Read task.md and follow the iteration protocol. You are $iter of $MAX_ITERS."
+  if [ "$STALL" -ge 2 ]; then
+    prompt="$prompt NOTE: the last $STALL iterations were DISCARDED. Do not try another variation of the same idea — change the CATEGORY of your approach (e.g., structural component instead of prompt wording, different trait, variance reduction, or combining two prior near-misses). Deleting complexity that keeps metrics equal is also a win."
+  fi
   lock_secret
   ( cd "$WS" && $AGENT_CMD -p "$prompt" $AGENT_FLAGS ) > "$RUNS/$iter.transcript.log" 2>&1
   unlock_secret
@@ -84,12 +121,26 @@ for i in $(seq 1 "$MAX_ITERS"); do
     echo "[$iter] AUDIT FAIL: transcript references the secret path — discarding." | tee -a "$RUNS/audit.log"
     git -C "$WS" reset --hard best -q; git -C "$WS" clean -fdq -e out -e feedback; continue
   fi
+  # Anti-memorization audit: no dev essay id may appear in engine source.
+  if [ -s "$LAB/.dev-ids" ] && grep -rFf "$LAB/.dev-ids" "$WS/engine/" 2>/dev/null | grep -q .; then
+    echo "[$iter] AUDIT FAIL: engine hardcodes dev essay ids — discarding." | tee -a "$RUNS/audit.log"
+    git -C "$WS" reset --hard best -q; git -C "$WS" clean -fdq -e out -e feedback; continue
+  fi
   if [ ! -f "$WS/engine/run.sh" ]; then
     echo "[$iter] no engine/run.sh produced — discarding."
     git -C "$WS" reset --hard best -q; git -C "$WS" clean -fdq -e out -e feedback; continue
   fi
 
-  evalout=$(run_dev_eval "$iter")
+  ITER_DUR=$(( $(date +%s) - ITER_T0 ))
+  evalout=$(run_dev_eval "$iter" "{\"duration_s\": $ITER_DUR, \"stall\": $STALL}")
+
+  if echo "$evalout" | grep -q '^BROKEN_ROUND'; then
+    echo "[$iter] BROKEN ROUND ($(echo "$evalout" | grep '^BROKEN_ROUND')) — not scored." | tee -a "$RUNS/audit.log"
+    STALL=$((STALL + 1))
+    git -C "$WS" reset --hard best -q; git -C "$WS" clean -fdq -e out -e feedback
+    continue
+  fi
+
   echo "$evalout" | head -1
   metrics=$(echo "$evalout" | sed -n 's/^STOP_METRICS=//p')
 
@@ -106,8 +157,10 @@ print('keep' if keep else 'discard')")
     git -C "$WS" add -A && git -C "$WS" commit -qm "$iter: KEPT ($metrics)"
     git -C "$WS" tag -f best
     echo "[$iter] KEPT ($metrics)"
+    STALL=0
   else
     echo "[$iter] discarded ($metrics vs best $(cat "$BEST"))"
+    STALL=$((STALL + 1))
     # Preserve loop memory (log, diagnostics, learnings journal — without the
     # journal, future iterations blindly retry falsified ideas).
     cp "$WS/experiments.jsonl" "$LAB/.exp.keep" 2>/dev/null || true
