@@ -46,7 +46,7 @@ flowchart LR
     NEMO["<b>Nemotron</b> · bounty<br/>Nano 30B-A3B writes AND judges"]:::live --> SPINE
     VLLM["<b>vLLM</b> · bounty<br/>self-hosted endpoint on a Brev A100"]:::live --> SPINE
     NC["<b>NemoClaw + OpenShell</b> · bounty<br/>sandboxed egress + publishing gate"]:::wip --> SPINE
-    ANT["<b>Most Commercializable</b> · Antler<br/>grades 3–5 STAAR assessment"]:::live --> SPINE
+    ANT["<b>Most Commercializable</b> · Antler<br/>grades 3–8 STAAR assessment"]:::live --> SPINE
     classDef live fill:#e7f7e7,stroke:#2e7d32,color:#111;
     classDef wip fill:#fff6e5,stroke:#e08a00,color:#111;
 ```
@@ -61,7 +61,7 @@ flowchart LR
 | **Nemotron** (bounty)              | Nemotron 3 Nano 30B-A3B is both the writer and the separate rubric judge                                                   | ✅ live                                     |
 | **vLLM** (bounty)                  | Nemotron served from a self-hosted OpenAI-compatible vLLM endpoint on a Brev A100 (base-URL swap)                          | ✅ live                                     |
 | **NemoClaw + OpenShell** (bounty)  | Heartbeat mapped to the Bring-Your-Own-Harness blueprint; OpenShell policy is the human publishing gate                    | 🔶 policy authored, sandbox run in progress |
-| **Most Commercializable** (Antler) | Grades-3–5 STAAR constructed-response assessment — a measured, real education workflow                                     | ✅ live                                     |
+| **Most Commercializable** (Antler) | Grades 3–8 STAAR constructed-response assessment — a measured, real education workflow                                     | ✅ live                                     |
 
 ---
 
@@ -153,33 +153,95 @@ deterministic validators → independent rubric evaluator → extract reusable
 lessons → integrate into memory (dedup, reinforce, promote) → next cycle applies
 the learning.
 
+## How to read the numbers (plain-English glossary)
+
+Everything this project claims is a measurement. Here is every term we use,
+in plain language, so the claims can be checked by someone starting from zero.
+
+**The problem being measured.** Texas grades student essays (STAAR) with
+trained human raters. Each essay gets an ideas-and-organization score
+(**dev_org**, 0–3) and a spelling-and-grammar score (**conventions**, 0–2);
+they add up to a **total** of 0–5. One official rule, the **cascade**: if
+dev_org is 0, everything is 0. Our engine tries to give the same scores the
+humans gave. The humans' published scores are the answer key — the **gold**.
+
+**QWK (quadratic weighted kappa)** — the agreement score between the engine
+and the human raters. 1.0 = perfect agreement; 0 = no better than a robot
+that hands out the same mix of scores at random; the "quadratic" part means
+big misses hurt extra (off by 2 costs 4× off by 1). It cannot be gamed by
+always guessing the middle score — that strategy scores ≈ 0. Rule of thumb
+in essay scoring: **0.70 and above is considered deployable**; that is the
+bar every claim here is measured against.
+
+**CI and LB (confidence interval, lower bound).** We test on ~39 essays per
+year — a small sample, so any score could be partly luck. The CI is the
+range we are 95% sure the true skill falls in (written like
+`0.880 [0.79–0.94]`), and the **LB is its pessimistic end**. House rule: a
+bar counts as cleared only if the _lower bound_ clears it. When you see
+"LB 0.791", read: "even on the gloomiest reading of the evidence, it beats
+0.79."
+
+**Train / dev / holdout** — the three piles the essays are split into, by
+year, never mixed. Train = the textbook (the builder sees essays, scores,
+and the raters' written reasoning). Dev = the practice test (the builder
+sees only essays; the referee holds the answers). Holdout = the final exam:
+locked away, **scored exactly once**, at the very end. Dev scores always
+run a little hot; only the holdout number is the honest headline.
+
+**Zero recall / zero precision.** Some essays earn a 0 (they never actually
+answer the prompt — e.g. they just retell the story). Think smoke detector:
+**recall** = of the real zeros, how many did we catch; **precision** = when
+we said "zero," how often were we right. Precision matters most — wrongly
+giving a student a 0 is the worst possible mistake — so our zero-detector
+is built to abstain when torn.
+
+**Exact / adjacent agreement** — how often the engine's total matches the
+human's exactly, and how often it lands within one point. Context: two
+trained human raters routinely differ by a point, which is why "adjacent"
+is reported at all.
+
+**Floors and the stop rule.** The loop may declare itself done only when
+every floor holds at the pessimistic end: total-QWK LB ≥ 0.70, each trait's
+LB ≥ 0.70, zero recall ≥ 0.5 — and never before a minimum number of
+iterations. Anything less keeps the loop running (or stops it honestly as
+"budget spent, not done").
+
+**The 0-to-1 scores in the demo** (e.g. `0.357 → 1.000`) are a different,
+simpler scale: the heartbeat's 7-dimension feedback rubric, where each
+dimension is scored 0/0.5/1. Those measure the agent's _feedback memos_,
+not essay-grading agreement — QWK is reserved for the assessment engine.
+
 ## Proof the loop works: the STAAR engine-builder run
 
-To prove the recursive-improvement claim beyond fixtures, we ran a companion
-experiment on real state-scored data: 117 officially scored STAAR grades 3–5
-essays, split by year, and an autonomous loop in which **a fresh AI with no
-memory builds and improves an essay-scoring engine run by run** — a referee
-(pure code + frozen human labels) keeps or rejects every change on the
-worst case of a bootstrapped confidence interval, and a locked 2025 holdout
-is scored exactly once at the end.
+To prove the recursive-improvement claim beyond fixtures, we ran companion
+experiments on real state-scored data (117 officially scored STAAR essays
+per grade band, split by year): an autonomous loop in which **a fresh AI
+with no memory builds and improves an essay-scoring engine run by run** — a
+referee (pure code + frozen human labels) keeps or rejects every change on
+the worst case of a bootstrapped confidence interval, and a locked holdout
+year is scored exactly once at the end. The diagram shows the current,
+hardened design (all terms are defined in
+[How to read the numbers](#how-to-read-the-numbers-plain-english-glossary)):
 
 ```mermaid
 flowchart TD
-    RAW([Raw data: 117 state-scored essays + ONE task file]) --> SPLIT[Split by year - never mixed]
-    SPLIT --> T["2023 TRAIN (textbook)<br/>essays + scores + state reasoning"]
-    SPLIT --> DV["2024 DEV (practice test)<br/>essays only - referee holds answers"]
-    SPLIT --> HO["2025 HOLDOUT (final exam)<br/>locked until the very end"]
+    RAW([Raw data: real state-scored essays + ONE task file]) --> SPLIT[Split by year - never mixed]
+    SPLIT --> T["TRAIN (textbook)<br/>essays + scores + the raters' written reasoning"]
+    SPLIT --> DV["DEV (practice test)<br/>essays only — referee holds the answers"]
+    SPLIT --> HO["HOLDOUT (final exam)<br/>locked — scored ONCE, at the very end"]
     T --> A
-    subgraph LOOP["THE LOOP - no human inside"]
-        A["Fresh AI builder<br/>reads task + journal + last mistakes"] --> B["ONE focused engine change"]
-        B --> C["Referee scores it on dev"]
-        C --> Q{"Worst-case score improved?"}
+    subgraph LOOP["THE LOOP — no human inside"]
+        A["Fresh AI builder<br/>reads task + journal + last misses<br/>(stuck twice? must change approach)"] --> B["ONE focused engine change"]
+        B --> G{"Guards pass?<br/>ran on all essays · no crash ·<br/>no hardcoded answers"}
+        G -- fail --> X
+        G -- pass --> C["Referee scores it on dev<br/>(direction-only feedback,<br/>never the answer key)"]
+        C --> Q{"Worst-case score improved<br/>AND zero-catching<br/>didn't get worse?"}
         Q -- yes --> K[KEEP]
         Q -- no --> X["DISCARD change,<br/>keep the journal"]
         K --> A
         X --> A
     end
-    LOOP -->|budget spent| F["FINAL EXAM: holdout, scored once"]
+    LOOP -->|"every quality floor met<br/>(or budget spent)"| F["FINAL EXAM: holdout, scored once"]
 ```
 
 Result of the first live run (2026-07-18, three iterations): the loop built a
