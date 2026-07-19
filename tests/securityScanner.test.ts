@@ -6,7 +6,11 @@ import { createEngine } from '../src/core/engine.js';
 import { DEMO_TASK } from '../src/fixtures/demoTask.js';
 import { HiddenLayerScanner } from '../src/adapters/security/HiddenLayerScanner.js';
 import type { FetchLike } from '../src/adapters/source/NwsAlertsSource.js';
-import type { RuntimeSecurityScanner } from '../src/ports/index.js';
+import {
+  SecurityBlockedError,
+  type RuntimeSecurityScanner,
+  type Writer,
+} from '../src/ports/index.js';
 
 let dir: string;
 beforeEach(() => {
@@ -69,10 +73,45 @@ describe('heartbeat security boundary', () => {
     expect(run.cycles).toHaveLength(0);
     expect(run.notes[0]?.detail).toMatch(/fail-closed.*scanner down/);
   });
+
+  it('a model-boundary block inside the write-cycle skips the tick visibly', async () => {
+    // Simulates ScannedModelClient refusing a flagged prompt/output mid-cycle:
+    // the heartbeat must convert it into a security-block note, persist no
+    // run, and keep beating rather than crash.
+    const blockedWriter: Writer = {
+      version: 'blocked-writer@test',
+      write: () =>
+        Promise.reject(
+          new SecurityBlockedError(
+            'fake-scanner flagged model prompt for writer: prompt-injection(high)',
+            'prompt',
+          ),
+        ),
+    };
+    const { heartbeat, deps } = createEngine({
+      dataDir: dir,
+      scanner: fakeScanner(false),
+      writer: blockedWriter,
+    });
+    const run = await heartbeat.run({ task: DEMO_TASK, ticks: 2 });
+
+    expect(run.cycles).toHaveLength(0);
+    const blocks = run.notes.filter((n) => n.kind === 'security-block');
+    expect(blocks).toHaveLength(2);
+    expect(blocks[0]?.detail).toMatch(/model prompt for writer/);
+    expect(await deps.store.listRuns()).toHaveLength(0);
+  });
 });
 
 describe('HiddenLayerScanner', () => {
-  function stubHl(detections: Array<Record<string, string>>): FetchLike & {
+  // Stub mirrors the LIVE-VERIFIED v2 response (2026-07-18): outcome.action
+  // NONE|DETECT|REDACT|BLOCK plus rule_name/risk_level detections, and on
+  // REDACT an effective_interaction carrying the transformed payload.
+  function stubHl(
+    action: string,
+    detections: Array<Record<string, string>> = [],
+    effectiveText?: string,
+  ): FetchLike & {
     calls: Array<{ url: string; init: Record<string, unknown> }>;
   } {
     const calls: Array<{ url: string; init: Record<string, unknown> }> = [];
@@ -86,7 +125,25 @@ describe('HiddenLayerScanner', () => {
           Promise.resolve(
             isAuth
               ? { access_token: 'tok-123', expires_in: 3600 }
-              : { detections },
+              : {
+                  outcome: {
+                    action,
+                    detections,
+                    ...(effectiveText !== undefined
+                      ? {
+                          effective_interaction: {
+                            messages: [
+                              {
+                                content: [
+                                  { type: 'text', text: effectiveText },
+                                ],
+                              },
+                            ],
+                          },
+                        }
+                      : {}),
+                  },
+                },
           ),
       });
     };
@@ -103,8 +160,18 @@ describe('HiddenLayerScanner', () => {
     });
   }
 
-  it('authenticates via client credentials, then posts the interaction', async () => {
-    const fetchFn = stubHl([]);
+  interface V2Body {
+    interaction: {
+      messages: Array<{
+        role: string;
+        content: Array<{ type: string; text: string }>;
+      }>;
+    };
+    metadata: Record<string, string>;
+  }
+
+  it('authenticates via client credentials, then posts the canonical interaction', async () => {
+    const fetchFn = stubHl('NONE');
     const result = await scanner(fetchFn).scan('ingested', 'hello', {
       feed: 'f',
     });
@@ -114,30 +181,102 @@ describe('HiddenLayerScanner', () => {
       'auth.hiddenlayer.ai/oauth2/token?grant_type=client_credentials',
     );
     expect(fetchFn.calls[1]?.url).toBe(
-      'https://api.hiddenlayer.ai/detection/v1/interactions',
+      'https://api.hiddenlayer.ai/detection/v2/interaction-evaluations',
     );
     const headers = fetchFn.calls[1]?.init['headers'] as Record<string, string>;
     expect(headers['Authorization']).toBe('Bearer tok-123');
     expect(headers['HL-Project-Id']).toBe('proj-1');
-    const body = JSON.parse(fetchFn.calls[1]?.init['body'] as string) as {
-      input?: string;
-      metadata: { boundary: string };
-    };
-    expect(body.input).toBe('hello');
-    expect(body.metadata.boundary).toBe('ingested');
+    const body = JSON.parse(fetchFn.calls[1]?.init['body'] as string) as V2Body;
+    expect(body.interaction.messages[0]?.role).toBe('user');
+    expect(body.interaction.messages[0]?.content[0]).toEqual({
+      type: 'text',
+      text: 'hello',
+    });
+    // Only documented metadata fields go on the wire.
+    expect(Object.keys(body.metadata).sort()).toEqual([
+      'model',
+      'provider',
+      'requester_id',
+    ]);
   });
 
-  it('maps detections to findings and flags', async () => {
-    const fetchFn = stubHl([
-      { category: 'prompt_injection', severity: 'high', description: 'bad' },
+  it('sends model output as an assistant message', async () => {
+    const fetchFn = stubHl('NONE');
+    await scanner(fetchFn).scan('output', 'the memo', {});
+    const body = JSON.parse(fetchFn.calls[1]?.init['body'] as string) as V2Body;
+    expect(body.interaction.messages[0]?.role).toBe('assistant');
+  });
+
+  it('honors metadata.messageRole for the canonical role', async () => {
+    const fetchFn = stubHl('NONE');
+    await scanner(fetchFn).scan('prompt', 'be fair', {
+      messageRole: 'system',
+    });
+    const body = JSON.parse(fetchFn.calls[1]?.init['body'] as string) as V2Body;
+    expect(body.interaction.messages[0]?.role).toBe('system');
+  });
+
+  it('a REDACT verdict is not flagged and carries the effective content', async () => {
+    const fetchFn = stubHl('REDACT', [], 'URL: file:[REDACTED]/clean.txt');
+    const result = await scanner(fetchFn).scan(
+      'prompt',
+      'URL: file:///var/folders/xy/secretlooking/clean.txt',
+      {},
+    );
+    expect(result.flagged).toBe(false);
+    expect(result.effectiveContent).toBe('URL: file:[REDACTED]/clean.txt');
+  });
+
+  it('DETECT below the block threshold is surfaced but does NOT block (default MEDIUM)', async () => {
+    const fetchFn = stubHl('DETECT', [
+      { rule_name: 'Code Presence', risk_level: 'LOW' },
+    ]);
+    const result = await scanner(fetchFn).scan('output', 'a memo', {});
+    expect(result.flagged).toBe(false);
+    // still reported, so the loop can log/critique it
+    expect(result.findings[0]?.category).toBe('Code Presence');
+  });
+
+  it('DETECT at or above the block threshold fails closed', async () => {
+    const fetchFn = stubHl('DETECT', [
+      { rule_name: 'Prompt Injection', risk_level: 'HIGH' },
     ]);
     const result = await scanner(fetchFn).scan('ingested', 'x', {});
     expect(result.flagged).toBe(true);
-    expect(result.findings[0]?.category).toBe('prompt_injection');
+  });
+
+  it('blockMinSeverity=low makes LOW detections block', async () => {
+    const fetchFn = stubHl('DETECT', [
+      { rule_name: 'Code Presence', risk_level: 'LOW' },
+    ]);
+    const s = new HiddenLayerScanner({
+      clientId: 'id',
+      clientSecret: 'secret',
+      blockMinSeverity: 'low',
+      fetchFn,
+      nowMs: () => 1_000_000,
+    });
+    expect((await s.scan('output', 'a memo', {})).flagged).toBe(true);
+  });
+
+  it('maps outcome detections to findings and flags on DETECT', async () => {
+    const fetchFn = stubHl('DETECT', [
+      { rule_name: '[System] Prompt Injection', risk_level: 'HIGH' },
+    ]);
+    const result = await scanner(fetchFn).scan('ingested', 'x', {});
+    expect(result.flagged).toBe(true);
+    expect(result.findings[0]?.category).toBe('[System] Prompt Injection');
+    expect(result.findings[0]?.severity).toBe('HIGH');
+  });
+
+  it('flags on BLOCK even without detection details', async () => {
+    const fetchFn = stubHl('BLOCK');
+    const result = await scanner(fetchFn).scan('prompt', 'x', {});
+    expect(result.flagged).toBe(true);
   });
 
   it('caches the token across scans', async () => {
-    const fetchFn = stubHl([]);
+    const fetchFn = stubHl('NONE');
     const s = scanner(fetchFn);
     await s.scan('ingested', 'a', {});
     await s.scan('output', 'b', {});

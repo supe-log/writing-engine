@@ -112,6 +112,13 @@ export interface SecurityScanResult {
   flagged: boolean;
   findings: SecurityScanFinding[];
   scanner: string;
+  /**
+   * Present when the scanner's policy REDACTED the content instead of
+   * blocking it: the transformed content the caller should forward in place
+   * of the original. `flagged` is false in that case — the policy explicitly
+   * chose proceed-with-redaction over refusal.
+   */
+  effectiveContent?: string;
 }
 
 /**
@@ -128,6 +135,25 @@ export interface RuntimeSecurityScanner {
     content: string,
     metadata: Record<string, string>,
   ): Promise<SecurityScanResult>;
+}
+
+/**
+ * Thrown when a runtime-security boundary refuses to let an interaction
+ * proceed — either the scanner flagged the content or the scan itself was
+ * unavailable (fail-closed). Lives in ports so the core heartbeat can catch
+ * it without depending on any concrete scanner adapter.
+ */
+export class SecurityBlockedError extends Error {
+  constructor(
+    message: string,
+    /** Which boundary refused: model prompt, model output, or ingestion. */
+    readonly boundary: 'ingested' | 'prompt' | 'output',
+    readonly findings: SecurityScanFinding[] = [],
+    readonly scanner?: string,
+  ) {
+    super(message);
+    this.name = 'SecurityBlockedError';
+  }
 }
 
 /**

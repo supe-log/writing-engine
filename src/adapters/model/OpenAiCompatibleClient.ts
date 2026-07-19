@@ -19,6 +19,18 @@ export interface ChatMessage {
   content: string;
 }
 
+/**
+ * The model-call seam the writer and evaluator adapters depend on. Kept as an
+ * interface so a decorator (e.g. the runtime-security ScannedModelClient) can
+ * wrap the transport without the adapters knowing.
+ */
+export interface ModelClient {
+  /** Model id as the server knows it. */
+  readonly model: string;
+  /** One chat completion; returns the assistant message content. */
+  complete(messages: ChatMessage[]): Promise<string>;
+}
+
 export class ModelProviderError extends Error {
   constructor(
     message: string,
@@ -45,10 +57,13 @@ export interface OpenAiCompatibleClientOptions {
 
 /** The slice of a chat-completions response this client reads. */
 interface ChatCompletionResponse {
-  choices?: Array<{ message?: { content?: string } }>;
+  choices?: Array<{
+    message?: { content?: string };
+    finish_reason?: string;
+  }>;
 }
 
-export class OpenAiCompatibleClient {
+export class OpenAiCompatibleClient implements ModelClient {
   readonly model: string;
   private readonly url: string;
   private readonly apiKey: string | undefined;
@@ -104,9 +119,15 @@ export class OpenAiCompatibleClient {
         `model response was not valid JSON: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
-    const content = payload.choices?.[0]?.message?.content;
+    const choice = payload.choices?.[0];
+    const content = choice?.message?.content;
     if (typeof content !== 'string' || content.length === 0) {
-      throw new ModelProviderError('model response carried no content');
+      // Reasoning models can exhaust max_tokens before emitting any content
+      // (finish_reason "length"); surface that so the fix (raise maxTokens /
+      // MODEL_MAX_TOKENS) is obvious.
+      throw new ModelProviderError(
+        `model response carried no content (finish_reason: ${choice?.finish_reason ?? 'unknown'})`,
+      );
     }
     return content;
   }

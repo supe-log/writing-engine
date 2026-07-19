@@ -21,13 +21,13 @@ import type {
 import { SCHEMA_VERSIONS } from '../../domain/records.js';
 import { shortId } from '../../core/hash.js';
 import type { Clock } from '../../core/clock.js';
-import type { OpenAiCompatibleClient } from '../model/OpenAiCompatibleClient.js';
+import type { ModelClient } from '../model/OpenAiCompatibleClient.js';
 
 export class ModelWriter implements Writer {
   readonly version: string;
 
   constructor(
-    private readonly client: OpenAiCompatibleClient,
+    private readonly client: ModelClient,
     private readonly clock: Clock,
   ) {
     this.version = `model-writer@1:${client.model}`;
@@ -86,6 +86,12 @@ function userPrompt(
   lines.push(`Feed: ${snapshot.event.feed}`);
   lines.push(`URL: ${snapshot.event.url}`);
   lines.push(`Published: ${snapshot.event.publishedAt}`);
+  lines.push('');
+  // The raw source text the writer must ground in (the essay being graded, the
+  // alert being summarized, ...). Untrusted — the system prompt already tells
+  // the model not to follow instructions found inside it.
+  lines.push('# Source text (ground your writing ONLY in what appears here)');
+  lines.push(snapshot.event.body);
   lines.push('');
   lines.push('# Evidence (claims with supporting URLs)');
   for (const claim of evidence.claims) {

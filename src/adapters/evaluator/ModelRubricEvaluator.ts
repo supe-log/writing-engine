@@ -21,7 +21,7 @@ import type {
 } from '../../domain/types.js';
 import { RUBRIC_DIMENSIONS } from '../../domain/types.js';
 import { SCHEMA_VERSIONS } from '../../domain/records.js';
-import type { OpenAiCompatibleClient } from '../model/OpenAiCompatibleClient.js';
+import type { ModelClient } from '../model/OpenAiCompatibleClient.js';
 
 const DIMENSION_GUIDE: Record<(typeof RUBRIC_DIMENSIONS)[number], string> = {
   sourceFidelity:
@@ -43,7 +43,7 @@ export class ModelRubricEvaluator implements RubricEvaluator {
   readonly rubricVersion = 'rubric@1';
   readonly evaluatorName: string;
 
-  constructor(private readonly client: OpenAiCompatibleClient) {
+  constructor(private readonly client: ModelClient) {
     this.evaluatorName = `model-judge@1:${client.model}`;
   }
 

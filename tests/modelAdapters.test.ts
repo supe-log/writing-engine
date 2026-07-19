@@ -163,6 +163,9 @@ describe('ModelWriter', () => {
     expect(user).toContain('22 alerts are active statewide');
     expect(user).toContain('Cite the source URL inline');
     expect(user).toContain(snapshot.event.url);
+    // The raw source text is grounded into the prompt so the model can reason
+    // over the actual content (essay being graded, alert being summarized).
+    expect(user).toContain(snapshot.event.body);
     const system =
       body.messages.find((m) => m.role === 'system')?.content ?? '';
     expect(system).toContain(DEMO_TASK.audience);

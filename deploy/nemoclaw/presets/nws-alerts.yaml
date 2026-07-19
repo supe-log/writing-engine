@@ -1,0 +1,21 @@
+# OPTIONAL side demo: the NOAA NWS live-alerts feed (SOURCE_ADAPTER=live).
+# The headline demo is the STAAR essay inbox, which needs NO network egress —
+# submissions arrive on the sandbox filesystem. Apply this preset only when
+# demonstrating the weather-alerts side feed.
+#
+# Apply: nemoclaw <sandbox> policy-add --from-file deploy/nemoclaw/presets/nws-alerts.yaml
+preset:
+  name: writing-engine-nws
+  description: 'NOAA api.weather.gov active-alerts feed (read-only)'
+network_policies:
+  writing_engine_nws:
+    name: writing_engine_nws
+    endpoints:
+      - host: api.weather.gov
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: GET, path: '/alerts/active' }
+    binaries:
+      - { path: /usr/local/bin/node }

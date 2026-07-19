@@ -1,8 +1,9 @@
-import type {
-  EvidenceGateEvaluator,
-  LiveSourceAdapter,
-  RuntimeSecurityScanner,
-  SnapshotService,
+import {
+  SecurityBlockedError,
+  type EvidenceGateEvaluator,
+  type LiveSourceAdapter,
+  type RuntimeSecurityScanner,
+  type SnapshotService,
 } from '../ports/index.js';
 import type { SourceSnapshot, WritingTask } from '../domain/types.js';
 import type {
@@ -160,15 +161,27 @@ export class Heartbeat {
         continue;
       }
 
-      const result = await runCycle(
-        this.deps,
-        options.task,
-        snapshot,
-        previous,
-        tick,
-      );
-      cycles.push(result);
-      previous = snapshot;
+      try {
+        const result = await runCycle(
+          this.deps,
+          options.task,
+          snapshot,
+          previous,
+          tick,
+        );
+        cycles.push(result);
+        previous = snapshot;
+      } catch (err) {
+        // Per-request model-boundary refusal (prompt or output flagged, or
+        // scan unavailable): fail-closed like the ingestion boundary — the
+        // tick is skipped visibly, nothing is written, the loop keeps beating.
+        if (!(err instanceof SecurityBlockedError)) throw err;
+        notes.push({
+          tick,
+          kind: 'security-block',
+          detail: err.message,
+        });
+      }
       await this.pause(options, tick);
     }
 
