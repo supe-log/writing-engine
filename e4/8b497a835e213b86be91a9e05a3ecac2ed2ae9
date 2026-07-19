@@ -1,0 +1,21 @@
+README.md
+  s_852ea5c5b4c4ca::t_1cb62c7709fbe3 329-335
+  s_852ea5c5b4c4ca::t_7551ce7c8f803b 225-252,255-309
+  s_852ea5c5b4c4ca::t_aa1cb13af957c8 253-254
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "e48b497a835e213b86be91a9e05a3ecac2ed2ae9",
+  "prompts": {},
+  "sessions": {
+    "s_852ea5c5b4c4ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8172ac63-781d-4a46-9302-9721c9739179",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
