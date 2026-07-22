@@ -1,0 +1,25 @@
+.claude/skills/engine-factory/SKILL.md
+  s_5883edc1c03177::t_dd5ad47497219c 1-148
+GETTING-STARTED.md
+  s_5883edc1c03177::t_1bcce0f7cc38bf 1-123
+docs/engine-factory-pipeline.md
+  s_5883edc1c03177::t_f4b6d7468af36c 1-72
+README.md
+  s_5883edc1c03177::t_169e011d46038f 9-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "0f47630b40629d4f2537696b057bb12be49a5ea5",
+  "prompts": {},
+  "sessions": {
+    "s_5883edc1c03177": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "32a32138-13e7-4301-9fac-c318e910d275",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
