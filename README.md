@@ -6,6 +6,13 @@ would — measured against real state-scored STAAR essays — then explains each
 score in evidence-grounded feedback. The "writing" it produces is that
 feedback and its reports, never essays for students.
 
+> **Want your own grading engine and don't care how it works?** Follow
+> [GETTING-STARTED.md](GETTING-STARTED.md) — install Claude Code, type
+> `/engine-factory`, answer questions in plain English. The factory checks
+> whether your data is sufficient (honestly), builds the engine in
+> self-improving rounds, and hands you a graded report card. Pipeline spec:
+> [docs/engine-factory-pipeline.md](docs/engine-factory-pipeline.md).
+
 Three parts, one discipline:
 
 1. **The assessment engine** — scores writing on official rubrics; its
