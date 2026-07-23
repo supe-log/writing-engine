@@ -111,6 +111,12 @@ The harness runs your engine with a timeout.
 - **Judge mix.** Different models have complementary trait strengths; score
   each trait with the model measured best for it before reaching for a
   stronger (or reasoning) model — "smarter judge" was falsified twice.
+- **Quote-grounded feedback (score-neutral, measured).** Require every
+  analysis/feedback field to include at least one verbatim quotation (4+
+  consecutive words) from the student response. Measured on a 26-essay dev
+  set: zero effect on scores (agreement with control identical to
+  run-to-run variance) while guaranteeing reviewable, evidence-grounded
+  feedback — official rater annotations always quote; engines should too.
 - **Responsiveness-based zero criteria for older writers.** Structural-absence
   zero criteria (bare response, no organization, summary-shaped) describe
   ELEMENTARY zeros; at high-school level, gold zeros are fluent, essay-shaped
