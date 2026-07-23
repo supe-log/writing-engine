@@ -1,0 +1,28 @@
+GETTING-STARTED.md
+  s_5883edc1c03177::t_887db3ee01e5ab 109-112
+  s_5883edc1c03177::t_185512c31a3523 62,76
+.claude/skills/engine-factory/SKILL.md
+  s_5883edc1c03177::t_cd64773cf7db23 20,36,49,62-69,118
+docs/engine-factory-pipeline.md
+  s_5883edc1c03177::t_157c79790def39 22-30,79-83,85
+tools/regression-gate/REPORT.md
+  s_5883edc1c03177::t_0fb93f5e2cfe87 2,14,21-36,39,41,47-49,52,59,76,81-86,89
+tools/regression-gate/families.example.json
+  s_5883edc1c03177::t_38d1bbdcf10490 44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "baa865ff363f899bdcba9ccb80d14ea9335c7c40",
+  "prompts": {},
+  "sessions": {
+    "s_5883edc1c03177": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "32a32138-13e7-4301-9fac-c318e910d275",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Logan May (Work) <loganwork@mac.lan>"
+    }
+  }
+}
