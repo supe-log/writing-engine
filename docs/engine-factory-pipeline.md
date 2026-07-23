@@ -70,3 +70,23 @@ flowchart LR
 - No measured evidence yet outside English or outside the STAAR ECR family;
   the pipeline is designed to acquire that evidence per task, not to assume
   transfer.
+
+## Live results (as of 2026-07-23)
+
+Four task families built and certified by this pipeline, all sealed
+first-exposure exams, total-QWK claims at the 95% CI lower bound:
+
+| family | holdout exam | notes |
+|---|---|---|
+| English 3–5 | 0.880 [LB 0.791] (N=39) | original loop run |
+| English 6–8 | 0.869 [LB 0.643] (N=12) | gen-3; zero adjudicator independently converged on responsiveness criteria |
+| Spanish 3–5 gen-1 | 0.906 [LB 0.773] (N=13) | first non-English build, one session end-to-end |
+| **Spanish 3–5 gen-2** | **0.872 [LB 0.767] (N=39, 2/3 argumentative)** | head-to-head vs gen-1: total tie, **false zeros 2→0**, Ideas +0.047 — adopted |
+| English I/II HS | 0.859 [LB 0.702] (N=26, true fresh year) | zeros 4/4 @ precision 1.0 |
+
+Adaptability mechanism, measured: the gen-2 lessons were adopted for
+Spanish (own sealed exam), REJECTED for both English elementary/middle
+engines by paired dev evals (one significantly negative), deferred for
+high school (circular provenance). Engines specialize per test; the
+factory carries general knowledge; tools/regression-gate/ gates every
+shared-layer candidate per family.

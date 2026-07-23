@@ -1,0 +1,44 @@
+{
+  "g35": {
+    "label": "STAAR English 3-5 (gen-1 loop engine)",
+    "language": "en",
+    "lab": "<local-labs-root>/staar-loop-lab",
+    "engine": "workspace/engine/run.sh",
+    "dev": "workspace/data/dev-responses.jsonl",
+    "gold": "<local-labs-root>/staar-loop-lab-secret/dev-gold.jsonl",
+    "traits": "<local-labs-root>/regression-gate/configs/traits-en.json",
+    "train": "workspace/data/train.jsonl"
+  },
+  "g68": {
+    "label": "STAAR English 6-8 (gen-3 engine)",
+    "language": "en",
+    "lab": "<local-labs-root>/staar-loop-lab-68-gen3",
+    "engine": "workspace/engine/run.sh",
+    "dev": "workspace/data/dev-responses.jsonl",
+    "gold": "<local-labs-root>/staar-loop-lab-68-secret/dev-gold.jsonl",
+    "traits": "<local-labs-root>/regression-gate/configs/traits-en.json",
+    "train": "workspace/data/train.jsonl"
+  },
+  "slar": {
+    "label": "STAAR Spanish 3-5 (SLAR gen-1)",
+    "language": "es",
+    "lab": "<local-labs-root>/staar-slar-lab",
+    "engine": "workspace/engine/run.sh",
+    "dev": "workspace/data/dev-responses.jsonl",
+    "gold": "<local-labs-root>/staar-slar-lab-secret/dev-gold.jsonl",
+    "traits": "<local-labs-root>/staar-slar-lab/workspace/traits.json",
+    "train": "workspace/data/train.jsonl",
+    "baseline_preds": "<local-labs-root>/staar-slar-lab/runs/preds-iter1.jsonl"
+  },
+  "eoc": {
+    "label": "STAAR English I/II HS (EOC gen-1)",
+    "language": "en",
+    "lab": "<local-labs-root>/staar-eng2-lab",
+    "engine": "workspace/engine/run.sh",
+    "dev": "workspace/data/dev-responses.jsonl",
+    "gold": "<local-labs-root>/staar-eng2-lab-secret/dev-gold.jsonl",
+    "traits": "<local-labs-root>/staar-eng2-lab/workspace/traits.json",
+    "train": "workspace/data/train.jsonl",
+    "baseline_preds": "<local-labs-root>/staar-eng2-lab/runs/preds-iter3.jsonl"
+  }
+}

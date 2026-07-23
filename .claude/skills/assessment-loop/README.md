@@ -17,6 +17,8 @@ keep/discard, and a holdout scored exactly once.
 | **Spanish STAAR 3–5 (SLAR), engine-factory E2E, 3 it.** | LB 0.7045 (iters 2–3 discarded) | **0.906 [0.773–0.959]** (13 essays, fresh family; zeros 2/2, one false zero) | First non-English build; the judge ladder found gpt-4o best on BOTH traits (English mix did not transfer). Full pipeline (data hunt → gate → ladder → loop → exam) ran in one session. |
 | **English I/II EOC (high school), engine-factory E2E, 3 it.** | LB 0.253 → 0.333 → 0.545 (all kept) | **0.859 [0.702–0.943]** (26 essays, TRUE fresh year 2025; zeros 4/4 @ precision 1.0, 24/26 within ±1) | Discovered HS zeros are responsiveness failures, not structural; the rebuilt adjudicator generalized 4/4. Third distinct judge pattern (3-8 mix inverted). |
 
+| **Spanish 3–5 gen-2 (lesson transfer), head-to-head** | dev: variant dominated all metrics | **2025 fresh year, N=39, each gen scored once: 0.872 [0.767] vs gen-1 0.873 [0.776] — tie on total, but false zeros 2→0 at recall 6/6** | Cross-family lesson transfer improves the ERROR PROFILE, not the headline; the same lessons were REJECTED by paired dev evals for the English 3–5 and 6–8 engines (one significantly negative) — lessons transfer as gated candidates, never blanket updates (tools/regression-gate/). |
+
 All corpora were extracted from public TEA scoring guides by parallel
 agents (verbatim student errors preserved); the corpora themselves are not
 redistributed here (they reproduce copyrighted reading passages).
