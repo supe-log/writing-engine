@@ -59,7 +59,7 @@ That's the whole interface. It will interview you in plain English:
 Before spending anything, the factory audits the data and gives you one of
 three answers:
 
-- 🟢 **GREEN** — enough data to build and *prove* an engine. It proceeds.
+- 🟢 **GREEN** — enough data to build and _prove_ an engine. It proceeds.
 - 🟡 **YELLOW** — it can build a draft engine, but with wide error bars and
   a rule that a human reviews borderline scores. It tells you exactly what
   extra data would earn green.
@@ -73,7 +73,7 @@ a few dollars to a few tens of dollars; it reports usage as it goes.
 
 ## Step 5 — It builds itself (you can watch)
 
-The factory then: picks the best judge models for *your* rubric by
+The factory then: picks the best judge models for _your_ rubric by
 measuring them, locks a final exam away where nothing can peek, and runs
 improvement rounds — each round a fresh AI builder tries one change, and a
 referee (pure code + your human scores) keeps it only if agreement with
@@ -106,9 +106,10 @@ enough, it will tell you precisely what to collect (typically ~120 scored
 essays covering every score point, including failing ones).
 
 **Does it work in other languages?**
-The pipeline runs in any language, but nothing is pre-proven outside
-English — the factory measures everything for your language from scratch
-and the report card says exactly what was and wasn't tested.
+Yes — the first non-English build (Spanish STAAR, grades 3–5) passed its
+sealed exam at QWK 0.87–0.91. The factory still measures everything for
+your language from scratch (judge choices proved language-specific), and
+the report card says exactly what was and wasn't tested.
 
 **Is my students' writing private?**
 Essays stay on your computer except when sent to the AI judges for scoring

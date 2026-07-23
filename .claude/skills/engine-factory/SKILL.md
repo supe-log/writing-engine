@@ -17,6 +17,7 @@ how well the engine agrees with human graders, where 1.0 is perfect").
 ## Stage 0 — Interview → `spec.json`
 
 Ask (in one friendly message, not an interrogation):
+
 1. What assessment? (name, subject, grade band, language)
 2. What kind of writing? (genre(s): informational, argumentative, narrative…)
 3. What does the score look like? (traits, ranges, any deterministic rules
@@ -32,6 +33,7 @@ Write `lab/spec.json`: {task_name, language, grade_band, genres, traits:
 ## Stage 1 — Data acquisition → corpus + provenance
 
 Two paths, in order of preference:
+
 - **Path A (user data):** they upload/point to files. PDFs of scoring
   guides get the extraction fan-out from assessment-loop Stage 1: one
   extractor subagent per document, VERBATIM transcription (student errors
@@ -44,6 +46,7 @@ Two paths, in order of preference:
   clearly-provenanced sources. Download, then same extraction fan-out.
 
 Non-negotiables:
+
 - `provenance.md`: source URL, publisher, license/copyright note, retrieval
   date for every document. Scored student responses from copyrighted guides
   stay LOCAL — never committed to a public repo, never redistributed.
@@ -56,14 +59,14 @@ Non-negotiables:
 Score the audit against measured thresholds (these numbers come from real
 runs — don't soften them):
 
-| Check | GREEN (full build) | YELLOW (degraded build) | RED (refuse) |
-|---|---|---|---|
-| Score-point coverage | every point, every trait | one gap at a non-boundary point | boundary points missing |
-| Lowest-class (zero) exemplars | ≥ 4 | 2–3 | 0–1 |
-| Total scored examples | ≥ 120 (≥ ~40/split) | 60–119 | < 60 |
-| Rater rationales | on most examples | sparse | — (YELLOW cap) |
-| Leakage-safe grouping | time or prompt-family field exists | — | no grouping possible |
-| Holdout reservable | yes, never touched | — | no |
+| Check                         | GREEN (full build)                 | YELLOW (degraded build)         | RED (refuse)            |
+| ----------------------------- | ---------------------------------- | ------------------------------- | ----------------------- |
+| Score-point coverage          | every point, every trait           | one gap at a non-boundary point | boundary points missing |
+| Lowest-class (zero) exemplars | ≥ 4                                | 2–3                             | 0–1                     |
+| Total scored examples         | ≥ 120 (≥ ~40/split)                | 60–119                          | < 60                    |
+| Rater rationales              | on most examples                   | sparse                          | — (YELLOW cap)          |
+| Leakage-safe grouping         | time or prompt-family field exists | —                               | no grouping possible    |
+| Holdout reservable            | yes, never touched                 | —                               | no                      |
 
 - **GREEN** → full pipeline, certification claims allowed (CI lower bounds).
 - **YELLOW** → build proceeds, but the report card must say "provisional":
@@ -112,6 +115,7 @@ zero-class recall/precision, limitations. The holdout is then SPENT.
 ## Stage 6 — Package → `dist/<task_name>/`
 
 Deliver a folder the user can use without understanding any of the above:
+
 - `engine/` — self-contained scorer (`run.sh <input.jsonl> <output.jsonl>`,
   stdlib-only python, the API key the only external need)
 - `grade.sh` — single-essay wrapper: `bash grade.sh essay.txt` → trait

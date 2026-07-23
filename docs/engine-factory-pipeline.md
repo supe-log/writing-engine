@@ -19,15 +19,15 @@ flowchart LR
   H -.next generation's data.-> B
 ```
 
-| # | Stage | Consumes | Produces | Decides |
-|---|---|---|---|---|
-| 0 | Interview | user conversation | `spec.json` | nothing (records) |
-| 1 | Data acquisition | spec + user files and/or web hunt | `corpus.jsonl`, `provenance.md`, `data-audit.json`, reserved exemplars | nothing (records) |
-| 2 | Feasibility gate | data-audit + spec.stakes | `feasibility-report.md` | **GO / DEGRADED / NO-GO** — the user confirms before spend |
-| 3 | Judge ladder | train split only | `judge-selection.md` (per-trait model table) | judge mix |
-| 4 | Build loop | scaffold + judge mix | kept engine (git tag `best`), `experiments.jsonl`, learnings | keep/discard per iteration (CI-LB + floors) |
-| 5 | Final exam | sealed holdout | `RESULTS.md` (holdout spent) | certification numbers |
-| 6 | Package | best engine + RESULTS | `dist/<task>/` (engine, grade.sh, REPORT-CARD.md, report-card.json, flywheel/) | claim tier wording |
+| #   | Stage            | Consumes                          | Produces                                                                       | Decides                                                    |
+| --- | ---------------- | --------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| 0   | Interview        | user conversation                 | `spec.json`                                                                    | nothing (records)                                          |
+| 1   | Data acquisition | spec + user files and/or web hunt | `corpus.jsonl`, `provenance.md`, `data-audit.json`, reserved exemplars         | nothing (records)                                          |
+| 2   | Feasibility gate | data-audit + spec.stakes          | `feasibility-report.md`                                                        | **GO / DEGRADED / NO-GO** — the user confirms before spend |
+| 3   | Judge ladder     | train split only                  | `judge-selection.md` (per-trait model table)                                   | judge mix                                                  |
+| 4   | Build loop       | scaffold + judge mix              | kept engine (git tag `best`), `experiments.jsonl`, learnings                   | keep/discard per iteration (CI-LB + floors)                |
+| 5   | Final exam       | sealed holdout                    | `RESULTS.md` (holdout spent)                                                   | certification numbers                                      |
+| 6   | Package          | best engine + RESULTS             | `dist/<task>/` (engine, grade.sh, REPORT-CARD.md, report-card.json, flywheel/) | claim tier wording                                         |
 
 ## Design decisions (and the measurements behind them)
 
@@ -76,13 +76,13 @@ flowchart LR
 Four task families built and certified by this pipeline, all sealed
 first-exposure exams, total-QWK claims at the 95% CI lower bound:
 
-| family | holdout exam | notes |
-|---|---|---|
-| English 3–5 | 0.880 [LB 0.791] (N=39) | original loop run |
-| English 6–8 | 0.869 [LB 0.643] (N=12) | gen-3; zero adjudicator independently converged on responsiveness criteria |
-| Spanish 3–5 gen-1 | 0.906 [LB 0.773] (N=13) | first non-English build, one session end-to-end |
+| family                | holdout exam                                   | notes                                                                         |
+| --------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------- |
+| English 3–5           | 0.880 [LB 0.791] (N=39)                        | original loop run                                                             |
+| English 6–8           | 0.869 [LB 0.643] (N=12)                        | gen-3; zero adjudicator independently converged on responsiveness criteria    |
+| Spanish 3–5 gen-1     | 0.906 [LB 0.773] (N=13)                        | first non-English build, one session end-to-end                               |
 | **Spanish 3–5 gen-2** | **0.872 [LB 0.767] (N=39, 2/3 argumentative)** | head-to-head vs gen-1: total tie, **false zeros 2→0**, Ideas +0.047 — adopted |
-| English I/II HS | 0.859 [LB 0.702] (N=26, true fresh year) | zeros 4/4 @ precision 1.0 |
+| English I/II HS       | 0.859 [LB 0.702] (N=26, true fresh year)       | zeros 4/4 @ precision 1.0                                                     |
 
 Adaptability mechanism, measured: the gen-2 lessons were adopted for
 Spanish (own sealed exam), REJECTED for both English elementary/middle
