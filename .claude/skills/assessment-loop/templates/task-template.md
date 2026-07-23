@@ -111,5 +111,27 @@ The harness runs your engine with a timeout.
 - **Judge mix.** Different models have complementary trait strengths; score
   each trait with the model measured best for it before reaching for a
   stronger (or reasoning) model — "smarter judge" was falsified twice.
+- **Responsiveness-based zero criteria for older writers.** Structural-absence
+  zero criteria (bare response, no organization, summary-shaped) describe
+  ELEMENTARY zeros; at high-school level, gold zeros are fluent, essay-shaped
+  responses whose failure is RESPONSIVENESS — evidence irrelevant to the asked
+  question, or answering a different question entirely (measured: the proven
+  structural adjudicator caught 0/4 HS zeros and false-fired; the rebuilt
+  responsiveness version — quote the asked question, state the writer's
+  closest answer, categorical checks — went 4/4 on a sealed fresh year with
+  no false fires). Design zero criteria for the writer's level, and verify
+  which zero TYPE your train set actually contains.
+- **Mechanical gates stabilize what graded judgments can't.** Adjudicator
+  conditions phrased as graded judgments ("is the evidence relevant enough?")
+  flap between samples and false-fire; the same intent expressed as
+  categorical cases behind code-computed facts (exact word count injected
+  into the prompt, quote-the-question-then-check) is stable. Voting at
+  temperature does NOT decorrelate correlated judgment errors — mechanical
+  gates do.
+- **Re-run the judge ladder for every task family and language — mixes do
+  not transfer.** Measured three times: English 3-8 (gpt-4.1 ideas +
+  gpt-4o conventions), Spanish 3-5 (gpt-4o BOTH traits), English HS EOC
+  (the 3-8 mix EXACTLY INVERTED). Assuming a prior mix silently costs more
+  than the ~$1 ladder run ever will.
 - **Median-of-k self-consistency** on the noisiest trait: cheap variance
   reduction, nothing tunable, kept in every reference run it appeared in.

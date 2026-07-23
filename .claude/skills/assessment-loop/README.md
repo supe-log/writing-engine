@@ -14,7 +14,10 @@ keep/discard, and a holdout scored exactly once.
 | STAAR grades 6–8 gen-2, fixed harness, 3 it.    | LB 0.641 → 0.704 → 0.753     | 0.825 [CI-LB 0.708] (2nd exposure — weaker claim)                           | The new multi-floor stop rule correctly REFUSED to declare done (dev/org trait floor unmet) — and the holdout agreed (dev/org LB 0.568). Zero-recall never regressed under the multi-objective keep.                                                                                                                                                                                                 |
 | **STAAR grades 6–8 gen-3, THIS harness, 3 it.** | **LB 0.791 → 0.871 → 0.897** | **0.869 [0.643–0.973]** (12 never-seen 2022 essays; both gold zeros caught) | **First run to satisfy the full multi-floor stop rule.** Iteration 1 beat gen-2's final best — the Proven Moves template carries compiled knowledge forward. Builder 3 honestly disclosed it could reconstruct dev gold from direction-only feedback + published aggregates (the flagged 0.897; cleanest un-gamed dev claim is 0.871) — the loophole is documented below and the holdout arbitrates. |
 
-Both corpora were extracted from public TEA scoring guides by parallel
+| **Spanish STAAR 3–5 (SLAR), engine-factory E2E, 3 it.** | LB 0.7045 (iters 2–3 discarded) | **0.906 [0.773–0.959]** (13 essays, fresh family; zeros 2/2, one false zero) | First non-English build; the judge ladder found gpt-4o best on BOTH traits (English mix did not transfer). Full pipeline (data hunt → gate → ladder → loop → exam) ran in one session. |
+| **English I/II EOC (high school), engine-factory E2E, 3 it.** | LB 0.253 → 0.333 → 0.545 (all kept) | **0.859 [0.702–0.943]** (26 essays, TRUE fresh year 2025; zeros 4/4 @ precision 1.0, 24/26 within ±1) | Discovered HS zeros are responsiveness failures, not structural; the rebuilt adjudicator generalized 4/4. Third distinct judge pattern (3-8 mix inverted). |
+
+All corpora were extracted from public TEA scoring guides by parallel
 agents (verbatim student errors preserved); the corpora themselves are not
 redistributed here (they reproduce copyrighted reading passages).
 
