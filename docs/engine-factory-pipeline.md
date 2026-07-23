@@ -67,9 +67,9 @@ flowchart LR
   intuition; a GEPA-style optimizer is the named upgrade.
 - Dollar cost per iteration is printed but not yet budgeted/capped
   automatically.
-- No measured evidence yet outside English or outside the STAAR ECR family;
-  the pipeline is designed to acquire that evidence per task, not to assume
-  transfer.
+- No measured evidence yet outside the STAAR ECR family (Spanish and
+  English, grades 3–10, are now covered — see Live results); the pipeline
+  is designed to acquire evidence per task, never to assume transfer.
 
 ## Live results (as of 2026-07-23)
 
